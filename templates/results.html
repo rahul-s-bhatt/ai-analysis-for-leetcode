@@ -1,43 +1,284 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Recommendations for {{ username }}</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+    <title>LeetCode Analysis for {{ username }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.css" rel="stylesheet">
+    <style>
+        .card-header {
+            background-color: #f8f9fa;
+        }
+        
+        .stat-card {
+            margin-bottom: 20px;
+        }
+        
+        .progress {
+            height: 20px;
+        }
+        
+        .badge-custom {
+            font-size: 14px;
+        }
+        
+        .recommendation-item {
+            border-left: 4px solid #007bff;
+            padding-left: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .priority-high {
+            border-left-color: #dc3545;
+        }
+        
+        .priority-medium {
+            border-left-color: #ffc107;
+        }
+        
+        .priority-low {
+            border-left-color: #28a745;
+        }
+        
+        .chart-container {
+            min-height: 300px;
+            width: 100%;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        @media (max-width: 768px) {
+            .chart-container {
+                min-height: 250px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container mt-5">
-        <h1 class="mb-4">Recommendations for {{ username }}</h1>
+        <h1 class="mb-4">LeetCode Analysis for {{ username }}</h1>
         
-        <div class="card mb-4">
+        <!-- Overview Section -->
+        <div class="card stat-card">
             <div class="card-header">
-                <h3>Problem-Solving Analysis</h3>
+                <h3>Profile Overview</h3>
             </div>
             <div class="card-body">
-                <div class="row mb-4">
-                    <div class="col">
-                        <h4>Solved Problems</h4>
-                        <ul class="list-unstyled">
-                            <li>Total: {{ stats.stats.solvedProblems }}</li>
-                            <li>Easy: {{ stats.stats.easySolved }}</li>
-                            <li>Medium: {{ stats.stats.mediumSolved }}</li>
-                            <li>Hard: {{ stats.stats.hardSolved }}</li>
-                        </ul>
+                <div class="row">
+                    <div class="col-md-4">
+                        <h5>Coding Style</h5>
+                        <p class="lead">{{ analysis.summary.coding_style }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h5>Skill Level</h5>
+                        <p class="lead">{{ analysis.summary.skill_level }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h5>Overall Score</h5>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" 
+                                 style="width: {{ analysis.summary.overall_score }}%"
+                                 aria-valuenow="{{ analysis.summary.overall_score }}" 
+                                 aria-valuemin="0" aria-valuemax="100">
+                                {{ analysis.summary.overall_score }}%
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                <h4>Areas for Improvement</h4>
-                <ul>
-                    {% for category, completion in recommendations.weak_categories %}
-                    <li>{{ category }}: {{ completion }} completed</li>
-                    {% endfor %}
-                </ul>
-                
-                <h4>Recommended Difficulty Level</h4>
-                <p>Based on your solving patterns, we recommend focusing on <strong>{{ recommendations.next_difficulty }}</strong> problems.</p>
             </div>
         </div>
-        
-        <a href="/" class="btn btn-primary">Back to Home</a>
+
+        <!-- Key Strengths -->
+        <div class="card stat-card">
+            <div class="card-header">
+                <h3>Key Strengths</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for strength in analysis.summary.key_strengths %}
+                    <div class="col-md-4 mb-3">
+                        <div class="badge bg-success badge-custom w-100 p-2">{{ strength }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Priority Areas -->
+        <div class="card stat-card">
+            <div class="card-header">
+                <h3>Priority Areas</h3>
+            </div>
+            <div class="card-body">
+                {% for area in analysis.summary.priority_areas %}
+                <div class="recommendation-item priority-{{ area.priority }} mb-3">
+                    <h5>{{ area.area }}</h5>
+                    <p>{{ area.reason }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Learning Path -->
+        <div class="card stat-card">
+            <div class="card-header">
+                <h3>Personalized Learning Path</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4>Study Plan</h4>
+                        {% for step in analysis.recommendations.study_plan.weekly_focus %}
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h5>Week {{ step.week }}: {{ step.focus_topic }}</h5>
+                                <p><strong>Difficulty:</strong> {{ step.difficulty }}</p>
+                                <p><strong>Target:</strong> {{ step.problems_per_day }} problems/day</p>
+                                <p><strong>Type:</strong> {{ step.type }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="col-md-6">
+                        <h4>Practice Strategy</h4>
+                        <div class="card">
+                            <div class="card-body">
+                                <h5>Recommended Approach</h5>
+                                <p>{{ analysis.recommendations.practice_strategy.practice_style.approach }}</p>
+                                <p>{{ analysis.recommendations.practice_strategy.practice_style.suggestion }}</p>
+                                
+                                <h5 class="mt-4">Difficulty Distribution</h5>
+                                <div id="difficultyChart" class="chart-container"></div>
+                                
+                                <h5 class="mt-4">Time Allocation</h5>
+                                <div id="timeAllocationChart" class="chart-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Next Steps -->
+        <div class="card stat-card">
+            <div class="card-header">
+                <h3>Immediate Next Steps</h3>
+            </div>
+            <div class="card-body">
+                {% for step in analysis.next_steps %}
+                <div class="recommendation-item mb-3">
+                    <h5>{{ step.action }}</h5>
+                    <p><strong>Timeframe:</strong> {{ step.timeframe }}</p>
+                    <p><strong>Target:</strong> {{ step.target }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Problem-Solving Stats -->
+        <div class="card stat-card">
+            <div class="card-header">
+                <h3>Problem-Solving Statistics</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 text-center">
+                        <h5>Easy</h5>
+                        <div class="progress mb-3">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: {{ (stats.stats.easySolved / stats.stats.totalQuestions.Easy * 100) | round }}%">
+                                {{ stats.stats.easySolved }}/{{ stats.stats.totalQuestions.Easy }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <h5>Medium</h5>
+                        <div class="progress mb-3">
+                            <div class="progress-bar bg-warning" role="progressbar" 
+                                 style="width: {{ (stats.stats.mediumSolved / stats.stats.totalQuestions.Medium * 100) | round }}%">
+                                {{ stats.stats.mediumSolved }}/{{ stats.stats.totalQuestions.Medium }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <h5>Hard</h5>
+                        <div class="progress mb-3">
+                            <div class="progress-bar bg-danger" role="progressbar" 
+                                 style="width: {{ (stats.stats.hardSolved / stats.stats.totalQuestions.Hard * 100) | round }}%">
+                                {{ stats.stats.hardSolved }}/{{ stats.stats.totalQuestions.Hard }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 mb-5">
+            <a href="/" class="btn btn-primary">Back to Home</a>
+        </div>
     </div>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    
+    <!-- Initialize chart data -->
+    <script>
+        // Safely parse JSON data from Flask
+        const analysisData = JSON.parse('{{ analysis | tojson | safe }}');
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                // Get practice strategy data
+                const practiceStrategy = analysisData.recommendations.practice_strategy;
+                
+                // Difficulty Distribution Chart
+                if (practiceStrategy && practiceStrategy.difficulty_distribution) {
+                    const diffCtx = document.getElementById('difficultyChart').getContext('2d');
+                    new Chart(diffCtx, {
+                        type: 'pie',
+                        data: {
+                            labels: Object.keys(practiceStrategy.difficulty_distribution),
+                            datasets: [{
+                                data: Object.values(practiceStrategy.difficulty_distribution),
+                                backgroundColor: ['#28a745', '#ffc107', '#dc3545']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: 'right'
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Time Allocation Chart
+                if (practiceStrategy && practiceStrategy.time_allocation) {
+                    const timeCtx = document.getElementById('timeAllocationChart').getContext('2d');
+                    new Chart(timeCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: Object.keys(practiceStrategy.time_allocation),
+                            datasets: [{
+                                data: Object.values(practiceStrategy.time_allocation),
+                                backgroundColor: ['#007bff', '#6f42c1', '#20c997']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: 'right'
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error initializing charts:', error);
+            }
+        });
+    </script>
 </body>
 </html>

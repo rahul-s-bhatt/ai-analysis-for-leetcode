@@ -66,22 +66,22 @@ def format_user_profile(data):
             logger.error("No data provided")
             return None
             
-        if "matchedUser" not in data:
-            logger.error("No matchedUser in data")
-            logger.debug(f"Available keys: {data.keys()}")
-            return None
-            
-        profile = data["matchedUser"]
-        contest_data = data.get("userContestRanking", {})
+        # If matchedUser is null or not present, create empty profile with contest data
+        profile = data.get("matchedUser") or {}
+        contest_data = data.get("userContestRanking")
+        questions_count = data.get("allQuestionsCount", [])
         
-        # Validate required nested structures
-        if "submitStats" not in profile:
-            logger.error("No submitStats in profile")
-            return None
-            
-        if "tagProblemCounts" not in profile:
-            logger.error("No tagProblemCounts in profile")
-            return None
+        # Create default stats when profile data is missing
+        default_stats = {
+            "solvedProblems": 0,
+            "easySolved": 0,
+            "mediumSolved": 0,
+            "hardSolved": 0,
+            "totalQuestions": {
+                item["difficulty"]: item["count"]
+                for item in questions_count
+            }
+        }
 
         formatted = {
             "username": profile.get("username", ""),
@@ -93,19 +93,19 @@ def format_user_profile(data):
                 "school": profile.get("profile", {}).get("school", ""),
                 "starRating": profile.get("profile", {}).get("starRating", 0),
             },
-            "stats": format_solved_problems_data(data),
-            "topics": format_topic_tags_data(data),
+            "stats": default_stats if not profile else format_solved_problems_data(data),
+            "topics": {} if not profile else format_topic_tags_data(data),
             "contest": {
-                "rating": contest_data.get("rating", 0),
-                "attended": contest_data.get("attendedContestsCount", 0),
-                "ranking": contest_data.get("globalRanking", 0),
-                "topPercentage": contest_data.get("topPercentage", 100)
+                "rating": contest_data.get("rating", 0) if contest_data else 0,
+                "attended": contest_data.get("attendedContestsCount", 0) if contest_data else 0,
+                "ranking": contest_data.get("globalRanking", 0) if contest_data else 0,
+                "topPercentage": contest_data.get("topPercentage", 100) if contest_data else 100
             },
             "calendar": {
                 "streak": profile.get("userCalendar", {}).get("streak", 0),
                 "totalActiveDays": profile.get("userCalendar", {}).get("totalActiveDays", 0),
             },
-            "recentSubmissions": format_recent_submissions(data)
+            "recentSubmissions": []
         }
         
         logger.debug(f"Formatted profile: {json.dumps(formatted, indent=2)}")

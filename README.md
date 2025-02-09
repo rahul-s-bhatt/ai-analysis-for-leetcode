@@ -1,43 +1,53 @@
-# LeetCode AI Insights
+# AI-Driven LeetCode Profile Analysis
 
-This project is an innovative web application designed to transform your LeetCode practice into a data-driven journey. By integrating advanced AI, it provides deep insights into your LeetCode performance, helping you understand your problem-solving patterns, identify weaknesses, and track your progress. The project delivers personalized recommendations to optimize your study path, aiming to significantly enhance your coding skills and problem-solving abilities.
-
-## Authors
-
-- [Rahul S. Bhatt]
+A sophisticated analytics platform that provides personalized insights and recommendations based on your LeetCode profile. The application uses AI/ML techniques to analyze solving patterns, identify skill gaps, and create customized learning paths.
 
 ## Features
 
-### Iteration 1
+- **Comprehensive Profile Analysis**
+  - Problem-solving patterns
+  - Skill level assessment
+  - Topic-wise proficiency analysis
+  - Success rate tracking
 
-- Clean, modern user interface
-- Basic profile statistics visualization
-- Problem-solving distribution by difficulty
-- Profile performance overview
-- Responsive design for all devices
+- **Personalized Learning Path**
+  - Custom study plans
+  - Difficulty progression recommendations
+  - Topic focus suggestions
+  - Weekly goals and milestones
 
+- **Smart Analytics**
+  - Coding style analysis
+  - Performance trends
+  - Skill gap identification
+  - Learning velocity tracking
 
-## Tech Stack
+- **Progress Visualization**
+  - Interactive charts
+  - Progress tracking
+  - Comparative analysis
+  - Achievement tracking
 
-- **Backend**: Flask (Python)
-- **Frontend**: HTML5, CSS3, JavaScript
-- **Visualization**: Plotly.js
-- **API Integration**: LeetCode GraphQL API
-
-## Setup
+## Installation
 
 1. Clone the repository:
 ```bash
-git clone [repository-url]
-cd leetcode-analyzer
+git clone https://github.com/yourusername/ai-analysis-for-leetcode.git
+cd ai-analysis-for-leetcode
 ```
 
-2. Install dependencies:
+2. Create and activate a virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows, use: venv\Scripts\activate
+```
+
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Run the application:
+4. Run the application:
 ```bash
 python app.py
 ```
@@ -46,60 +56,86 @@ The application will be available at `http://localhost:5000`
 
 ## Usage
 
-1. Visit the homepage
-2. Enter a LeetCode username
-3. View detailed profile analysis and statistics
+1. Visit the homepage and enter your LeetCode username
+2. The system will analyze your profile and generate:
+   - Comprehensive skill analysis
+   - Personalized learning path
+   - Practice recommendations
+   - Progress visualization
+3. Use the insights to improve your problem-solving skills and track your progress
 
-## Project Structure
+## Technical Architecture
 
-```
-leetcode-analyzer/
-├── app.py              # Main Flask application
-├── Config.py           # Configuration settings
-├── GQLQuery.py         # LeetCode API integration
-├── requirements.txt    # Project dependencies
-├── static/
-│   ├── css/           # Stylesheets
-│   └── js/            # JavaScript files
-└── templates/         # HTML templates
-    ├── base.html
-    ├── index.html
-    ├── profile.html
-    └── error.html
-```
+### Core Components
 
-## Color Palette
+1. **Data Collection**
+   - LeetCode GraphQL API integration
+   - Async data fetching
+   - Rate limiting and caching
 
-- Primary Yellow: `#F4B400`
-- Primary Blue: `#1D3557`
-- Secondary Blue: `#457B9D`
-- Neutral Blue: `#2E598A`
-- Problem Difficulty Colors:
-  - Easy: `#00B8A3`
-  - Medium: `#FFC01E`
-  - Hard: `#FF375F`
+2. **Analytics Engine**
+   - Pattern Analysis
+   - Skill Assessment
+   - Learning Path Generation
+   - Performance Tracking
 
-## Roadmap
+3. **Visualization**
+   - Interactive Charts
+   - Progress Tracking
+   - Skill Radar
+   - Timeline Views
 
-### Iteration 1 (Current)
-- Basic profile analysis
-- Problem-solving statistics
-- Simple visualizations
+### Analytics Modules
 
-### Iteration 2 (Planned)
-- Basic AI integration
-- Enhanced data visualization
-- Performance trends analysis
-
-### Iteration 3 (Future)
-- Advanced AI features
-- Detailed skill analysis
-- Personalized recommendations
+- `PatternAnalyzer`: Analyzes problem-solving patterns and coding style
+- `SkillAnalyzer`: Assesses skill levels across different areas
+- `LearningPathAnalyzer`: Generates personalized learning paths
+- `AnalyticsManager`: Coordinates all analytics components
 
 ## Contributing
 
-Feel free to open issues and submit pull requests. For major changes, please open an issue first to discuss what you would like to change.
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ## License
 
-[MIT License](LICENSE)
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- LeetCode for providing the API
+- The open-source community for various tools and libraries
+- Contributors and users of this project
+
+## Future Enhancements
+
+1. **Machine Learning Integration**
+   - Enhanced pattern recognition
+   - Predictive analysis
+   - Success probability calculation
+
+2. **Advanced Features**
+   - Company-specific preparation
+   - Interview readiness assessment
+   - Peer comparison
+   - Team analytics
+
+3. **Platform Extensions**
+   - Mobile app
+   - Browser extension
+   - API access
+   - Integration with other platforms
+
+## Support
+
+For support, questions, or feature requests:
+1. Check existing issues or create a new one
+2. Join our discussion forum (coming soon)
+3. Contact the maintainers
+
+---
+
+Made with ❤️ by the AI Analysis for LeetCode Team

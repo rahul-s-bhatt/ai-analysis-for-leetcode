@@ -1,9 +1,10 @@
+import random
+
 class ProblemRecommender:
     def __init__(self, user_data):
         self.user_data = user_data
         
     def analyze_solving_patterns(self):
-        # Get topic stats from formatted data
         topics = self.user_data['topics']
         difficulties = {
             'Easy': self.user_data['stats']['easySolved'],
@@ -11,7 +12,6 @@ class ProblemRecommender:
             'Hard': self.user_data['stats']['hardSolved']
         }
         
-        # Calculate topic completion rates
         topic_completion = {
             name: (info['solved'] / info['total'] * 100) 
             for name, info in topics.items()
@@ -21,14 +21,11 @@ class ProblemRecommender:
         return topic_completion, difficulties
 
     def get_ml_recommendations(self):
-        # Extract features from user stats
         solved = self.user_data['stats']['solvedProblems']
         easy = self.user_data['stats']['easySolved']
         med = self.user_data['stats']['mediumSolved']
         hard = self.user_data['stats']['hardSolved']
         
-        # Use dummy coefficients as a stand-in for a trained ML model
-        # (Replace these with real model predictions as needed)
         score_easy = 0.5 * easy - 0.1 * solved
         score_med = 0.7 * med - 0.1 * solved
         score_hard = 0.8 * hard - 0.05 * solved
@@ -36,37 +33,88 @@ class ProblemRecommender:
         scores = {'Easy': score_easy, 'Medium': score_med, 'Hard': score_hard}
         predicted_difficulty = max(scores, key=scores.get)
         
+        topic_suggestions = {
+            'Easy': ["Array", "String"],
+            'Medium': ["Dynamic Programming", "Graph"],
+            'Hard': ["Advanced Graph Algorithms", "Segment Tree"]
+        }
+        suggested_topic = random.choice(topic_suggestions[predicted_difficulty])
+
         return {
             'predicted_difficulty': predicted_difficulty,
-            'ml_scores': {k: f"{v:.2f}" for k, v in scores.items()}
+            'ml_scores': {k: f"{v:.2f}" for k, v in scores.items()},
+            'suggested_topic': suggested_topic
         }
-    
+
+    def get_leetcode_problem_links(self, topic, difficulty, num_problems=3):
+        problem_links = {
+            "Dynamic Programming": {
+                "Medium": [
+                    {"title": "Coin Change", "link": "https://leetcode.com/problems/coin-change/"},
+                    {"title": "Longest Increasing Subsequence", "link": "https://leetcode.com/problems/longest-increasing-subsequence/"},
+                    {"title": "Edit Distance", "link": "https://leetcode.com/problems/edit-distance/"}
+                ]
+            },
+            "Graph": {
+                "Medium": [
+                    {"title": "Number of Islands", "link": "https://leetcode.com/problems/number-of-islands/"},
+                    {"title": "Clone Graph", "link": "https://leetcode.com/problems/clone-graph/"},
+                    {"title": "Course Schedule", "link": "https://leetcode.com/problems/course-schedule/"}
+                ]
+            },
+            "Array": {
+                "Easy": [
+                    {"title": "Two Sum", "link": "https://leetcode.com/problems/two-sum/"},
+                    {"title": "Remove Duplicates from Sorted Array", "link": "https://leetcode.com/problems/remove-duplicates-from-sorted-array/"},
+                    {"title": "Best Time to Buy and Sell Stock", "link": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock/"}
+                ]
+            },
+            "String": {
+                "Easy": [
+                    {"title": "Valid Palindrome", "link": "https://leetcode.com/problems/valid-palindrome/"},
+                    {"title": "Longest Common Prefix", "link": "https://leetcode.com/problems/longest-common-prefix/"},
+                    {"title": "Reverse String", "link": "https://leetcode.com/problems/reverse-string/"}
+                ]
+            },
+            "Advanced Graph Algorithms": {
+                "Hard": [
+                    {"title": "Shortest Distance from All Buildings", "link": "https://leetcode.com/problems/shortest-distance-from-all-buildings/"},
+                ]
+            },
+            "Segment Tree": {
+                "Hard": [
+                    {"title": "Range Sum Query - Mutable", "link": "https://leetcode.com/problems/range-sum-query-mutable/"},
+                ]
+            }
+        }
+
+        if topic in problem_links and difficulty in problem_links[topic]:
+            return random.sample(problem_links[topic][difficulty], min(num_problems, len(problem_links[topic][difficulty])))
+        else:
+            return [{"title": "No problems found", "link": "#"}] * num_problems
+
     def get_recommendations(self):
         topic_completion, difficulties = self.analyze_solving_patterns()
-        
-        recommendations = {
-            'weak_categories': [],
-            'next_difficulty': None,
-            'suggested_problems': []
-        }
-        
-        # Find categories with lowest completion rates
         sorted_topics = sorted(topic_completion.items(), key=lambda x: x[1])
-        recommendations['weak_categories'] = [(topic, f"{completion:.1f}%") 
-                                           for topic, completion in sorted_topics[:3]]
+        weak_topics = sorted_topics[:3]
+        weak_categories = [(topic, f"{completion:.1f}%") for topic, completion in weak_topics]
         
-        # Suggest next difficulty level
-        total_solved = self.user_data['stats']['solvedProblems']
-        if total_solved < 50:
-            recommendations['next_difficulty'] = 'Easy'
-        elif difficulties['Easy'] > 30 and difficulties['Medium'] < 20:
-            recommendations['next_difficulty'] = 'Medium'
-        elif difficulties['Medium'] > 50 and difficulties['Hard'] < 10:
-            recommendations['next_difficulty'] = 'Hard'
-        
-        # Get ML-driven recommendation
         ml_result = self.get_ml_recommendations()
-        recommendations['next_difficulty'] = ml_result['predicted_difficulty']
-        recommendations['ml_scores'] = ml_result['ml_scores']
-        
+        suggested_difficulty = ml_result['predicted_difficulty']
+        suggested_topic = ml_result['suggested_topic']
+
+        problem_links = self.get_leetcode_problem_links(suggested_topic, suggested_difficulty)
+
+        roadmap = {
+            "Difficulty": suggested_difficulty,
+            "Topic": suggested_topic,
+            "Problems": problem_links
+        }
+
+        recommendations = {
+            'weak_categories': weak_categories,
+            'next_difficulty': suggested_difficulty,
+            'ml_scores': ml_result['ml_scores'],
+            'roadmap': roadmap
+        }
         return recommendations

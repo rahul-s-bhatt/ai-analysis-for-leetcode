@@ -211,55 +211,47 @@ class GQLQuery:
 
     async def _call_api(self, graphql_query: Dict[str, Any], username: str) -> Dict[str, Any]:
         """Make an async GraphQL API call with rate limiting"""
-
-        if not self._session:
-            self._session = aiohttp.ClientSession()
-
-        if not self.session_cookie:
-            self.session_cookie = await self.get_leetcode_session_cookie()
-
-        # Enforce rate limiting
-        await self._enforce_rate_limit()
-
-        start_time = time()
-        logger.info(f"Making GraphQL request for user: {username}")
-        logger.debug(f"Query: {json.dumps(graphql_query, indent=2)}")
-
-        headers = {
-            "Content-Type": "application/json",
-            "Referer": f"https://leetcode.com/{username}/",
-            "Origin": "https://leetcode.com",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-            "Cookie": f"LEETCODE_SESSION={self.session_cookie}"
-        }
-
         try:
-            async with self._session.post(
-                "https://leetcode.com/graphql",
-                json=graphql_query,
-                headers=headers
-            ) as response:
-                elapsed_time = time() - start_time
-                logger.info(
-                    f"Request completed in {elapsed_time:.2f}s with status: {response.status}")
+            async with aiohttp.ClientSession() as session:
+                if not self.session_cookie:
+                    self.session_cookie = await self.get_leetcode_session_cookie()
 
-                response_json = await response.json()
+                # Enforce rate limiting
+                await self._enforce_rate_limit()
 
-                if response.ok:
-                    logger.debug(
-                        f"Response data: {json.dumps(response_json, indent=2)}")
-                else:
-                    logger.error(f"Request failed: {response_json}")
+                start_time = time()
+                logger.info(f"Making GraphQL request for user: {username}")
+                logger.debug(f"Query: {json.dumps(graphql_query, indent=2)}")
 
-                return response_json
+                headers = {
+                    "Content-Type": "application/json",
+                    "Referer": f"https://leetcode.com/{username}/",
+                    "Origin": "https://leetcode.com",
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+                    "Cookie": f"LEETCODE_SESSION={self.session_cookie}"
+                }
 
+                async with session.post(
+                    "https://leetcode.com/graphql",
+                    json=graphql_query,
+                    headers=headers
+                ) as response:
+                    elapsed_time = time() - start_time
+                    logger.info(
+                        f"Request completed in {elapsed_time:.2f}s with status: {response.status}")
+
+                    response_json = await response.json()
+
+                    if response.ok:
+                        logger.debug(
+                            f"Response data: {json.dumps(response_json, indent=2)}")
+                        return response_json
+                    else:
+                        logger.error(f"Request failed: {response_json}")
+                        return response_json
         except Exception as e:
             logger.error(f"API call failed: {str(e)}", exc_info=True)
             raise
-        # else:
-        #     # Display a login button
-        #     print('Please login to LeetCode to continue.')
-        #     self.login_to_leetcode()
 
     async def get_user_contest_ranking(self, username: str) -> Dict[str, Any]:
         get_user_contest_ranking_json = {
