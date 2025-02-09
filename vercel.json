@@ -1,14 +1,14 @@
 {
-    "version": 2,
-    "functions": {
-      "/(.*)": {
-        "runtime": "python3.11"
-      }
-    },
-    "routes": [
-      {
-        "src": "/(.*)",
-        "dest": "app.py"
-      }
-    ]
-  }
+  "version": 2,
+  "functions": {
+    "(.*)": {
+      "runtime": "python3.11"
+    }
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "app.py"
+    }
+  ]
+}
