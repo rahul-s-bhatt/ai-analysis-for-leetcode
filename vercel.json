@@ -1,8 +1,8 @@
 {
   "version": 2,
   "functions": {
-    "api/**/*.py": {
-      "runtime": "python@3.11.5"
+    "api/app.py": {
+      "runtime": "python@3.11"
     }
   },
   "routes": [
