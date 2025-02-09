@@ -1,0 +1,43 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or Discussion
+    url: https://github.com/yourusername/ai-analysis-for-leetcode/discussions
+    about: Ask questions and discuss with other community members
+    
+labels:
+  - name: "good first issue"
+    color: "7057ff"
+    description: "Good for newcomers"
+  - name: "help wanted"
+    color: "008672"
+    description: "Extra attention is needed"
+  - name: "priority: high"
+    color: "d73a4a"
+    description: "High priority task"
+  - name: "priority: medium"
+    color: "fbca04"
+    description: "Medium priority task"
+  - name: "priority: low"
+    color: "0e8a16"
+    description: "Low priority task"
+  - name: "type: enhancement"
+    color: "a2eeef"
+    description: "New feature or enhancement"
+  - name: "type: bug"
+    color: "d73a4a"
+    description: "Something isn't working"
+  - name: "type: documentation"
+    color: "0075ca"
+    description: "Documentation improvements"
+  - name: "type: performance"
+    color: "ff7619"
+    description: "Performance improvements"
+  - name: "difficulty: beginner"
+    color: "0e8a16"
+    description: "Good for beginners"
+  - name: "difficulty: intermediate"
+    color: "fbca04"
+    description: "Requires some experience"
+  - name: "difficulty: advanced"
+    color: "d73a4a"
+    description: "Complex implementation required"
