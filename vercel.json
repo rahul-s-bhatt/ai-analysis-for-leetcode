@@ -2,7 +2,7 @@
   "version": 2,
   "functions": {
     "(.*)": {
-      "runtime": "python3.11"
+      "runtime": "python@3.11.5"
     }
   },
   "routes": [
