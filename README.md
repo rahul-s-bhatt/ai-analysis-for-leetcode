@@ -1,34 +1,31 @@
-# AI-Driven LeetCode Profile Analysis
+# AI-Powered LeetCode Profile Analyzer
 
-A sophisticated analytics platform that provides personalized insights and recommendations based on your LeetCode profile. The application uses AI/ML techniques to analyze solving patterns, identify skill gaps, and create customized learning paths.
+An advanced analytics tool that provides deep insights into your LeetCode profile, helping you understand your coding patterns, track progress, and optimize your learning path.
 
-## Features
+## 🚀 Features
 
-- **Comprehensive Profile Analysis**
-  - Problem-solving patterns
-  - Skill level assessment
-  - Topic-wise proficiency analysis
-  - Success rate tracking
+- **Profile Analysis**: Comprehensive analysis of your LeetCode profile using AI
+- **Learning Path**: Personalized recommendations for skill improvement
+- **Pattern Recognition**: Identify coding patterns in your solutions
+- **Skill Assessment**: Detailed breakdown of your technical strengths
+- **Contest Performance**: Analysis of your competition statistics
 
-- **Personalized Learning Path**
-  - Custom study plans
-  - Difficulty progression recommendations
-  - Topic focus suggestions
-  - Weekly goals and milestones
+## 🛠 Tech Stack
 
-- **Smart Analytics**
-  - Coding style analysis
-  - Performance trends
-  - Skill gap identification
-  - Learning velocity tracking
+- Python 3.11.5
+- Flask for API and Web Interface
+- GraphQL for LeetCode API Integration
+- Async Processing for Performance
+- Docker Support
 
-- **Progress Visualization**
-  - Interactive charts
-  - Progress tracking
-  - Comparative analysis
-  - Achievement tracking
+## 📋 Prerequisites
 
-## Installation
+- Python 3.11.5
+- Docker (optional)
+
+## 🔧 Installation
+
+### Local Setup
 
 1. Clone the repository:
 ```bash
@@ -39,7 +36,10 @@ cd ai-analysis-for-leetcode
 2. Create and activate a virtual environment:
 ```bash
 python -m venv venv
-source venv/bin/activate  # On Windows, use: venv\Scripts\activate
+# Windows
+.\venv\Scripts\activate
+# Unix/macOS
+source venv/bin/activate
 ```
 
 3. Install dependencies:
@@ -47,95 +47,90 @@ source venv/bin/activate  # On Windows, use: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. Run the application:
+### Docker Setup
+
+1. Build the Docker image:
 ```bash
-python app.py
+docker build -t leetcode-analyzer .
 ```
 
-The application will be available at `http://localhost:5000`
+2. Run the container:
+```bash
+docker run -p 3000:3000 leetcode-analyzer
+```
 
-## Usage
+## 🚀 Usage
 
-1. Visit the homepage and enter your LeetCode username
-2. The system will analyze your profile and generate:
-   - Comprehensive skill analysis
-   - Personalized learning path
-   - Practice recommendations
-   - Progress visualization
-3. Use the insights to improve your problem-solving skills and track your progress
+### Running Locally
 
-## Technical Architecture
+1. Start the Flask application:
+```bash
+python api/app.py
+```
 
-### Core Components
+2. Open your browser and navigate to:
+```
+http://localhost:5000
+```
 
-1. **Data Collection**
-   - LeetCode GraphQL API integration
-   - Async data fetching
-   - Rate limiting and caching
+3. Enter a LeetCode username to analyze
 
-2. **Analytics Engine**
-   - Pattern Analysis
-   - Skill Assessment
-   - Learning Path Generation
-   - Performance Tracking
+### API Endpoints
 
-3. **Visualization**
-   - Interactive Charts
-   - Progress Tracking
-   - Skill Radar
-   - Timeline Views
+1. Web Interface:
+- `GET /`: Home page with input form
+- `POST /`: Submit username for analysis
 
-### Analytics Modules
+2. API:
+- `GET /api/analysis/<username>`: Get JSON analysis for a specific user
 
-- `PatternAnalyzer`: Analyzes problem-solving patterns and coding style
-- `SkillAnalyzer`: Assesses skill levels across different areas
-- `LearningPathAnalyzer`: Generates personalized learning paths
-- `AnalyticsManager`: Coordinates all analytics components
+## 📊 Features in Detail
 
-## Contributing
+### Profile Analysis
+- Submission history analysis
+- Problem-solving patterns
+- Language preferences
+- Time complexity patterns
+
+### Learning Path Generation
+- Personalized problem recommendations
+- Skill gap analysis
+- Progress tracking
+- Difficulty progression suggestions
+
+### Pattern Recognition
+- Common solution patterns
+- Algorithmic preferences
+- Time/space complexity trends
+- Language-specific patterns
+
+## 🔐 Security
+
+The application uses:
+- Rate limiting for API requests
+- Error handling for failed requests
+- Secure session management
+- Input validation
+
+## 🌐 Deployment
+
+The application is Vercel-compatible and can be deployed directly using the included configuration files:
+- `vercel.json`: Vercel deployment configuration
+- `Dockerfile`: Container configuration
+- `requirements.txt`: Python dependencies
+
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a new Pull Request
 
-## License
+## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the terms of the LICENSE file included in the repository.
 
-## Acknowledgments
+## 🔍 Issues and Support
 
-- LeetCode for providing the API
-- The open-source community for various tools and libraries
-- Contributors and users of this project
-
-## Future Enhancements
-
-1. **Machine Learning Integration**
-   - Enhanced pattern recognition
-   - Predictive analysis
-   - Success probability calculation
-
-2. **Advanced Features**
-   - Company-specific preparation
-   - Interview readiness assessment
-   - Peer comparison
-   - Team analytics
-
-3. **Platform Extensions**
-   - Mobile app
-   - Browser extension
-   - API access
-   - Integration with other platforms
-
-## Support
-
-For support, questions, or feature requests:
-1. Check existing issues or create a new one
-2. Join our discussion forum (coming soon)
-3. Contact the maintainers
-
----
-
-Made with ❤️ by the AI Analysis for LeetCode Team
+For issues, feature requests, or support, please file an issue in the GitHub repository issue tracker.
