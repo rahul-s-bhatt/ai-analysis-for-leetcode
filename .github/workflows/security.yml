@@ -34,12 +34,12 @@ jobs:
       run: safety check
     
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
+      uses: github/codeql-action/init@v3
       with:
         languages: python
     
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
+      uses: github/codeql-action/analyze@v3
     
     - name: Upload security scan results
       uses: actions/upload-artifact@v3
