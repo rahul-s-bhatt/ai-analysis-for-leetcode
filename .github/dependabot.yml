@@ -1,0 +1,52 @@
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    labels:
+      - "dependencies"
+      - "security"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    open-pull-requests-limit: 10
+    pull-request-branch-name:
+      separator: "-"
+    reviewers:
+      - "repo-maintainers"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-patch"]
+    groups:
+      dev-dependencies:
+        patterns:
+          - "pytest*"
+          - "black"
+          - "flake8"
+          - "mypy"
+      production-dependencies:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "pytest*"
+          - "black"
+          - "flake8"
+          - "mypy"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    labels:
+      - "ci-cd"
+      - "dependencies"
+    commit-message:
+      prefix: "ci"
+      include: "scope"

@@ -2,6 +2,10 @@
 
 An advanced analytics tool that provides deep insights into your LeetCode profile, helping you understand your coding patterns, track progress, and optimize your learning path.
 
+[![Security Scan](https://github.com/yourusername/ai-analysis-for-leetcode/actions/workflows/security.yml/badge.svg)](https://github.com/yourusername/ai-analysis-for-leetcode/actions/workflows/security.yml)
+[![Dependency Status](https://img.shields.io/badge/dependencies-up%20to%20date-brightgreen.svg)](https://github.com/yourusername/ai-analysis-for-leetcode/pulls?q=is%3Apr+author%3Aapp%2Fdependabot)
+[![Security Policy](https://img.shields.io/badge/security-policy-brightgreen.svg)](SECURITY.md)
+
 ## 🚀 Features
 
 - **Profile Analysis**: Comprehensive analysis of your LeetCode profile using AI
@@ -106,11 +110,21 @@ http://localhost:5000
 
 ## 🔐 Security
 
-The application uses:
-- Rate limiting for API requests
-- Error handling for failed requests
-- Secure session management
-- Input validation
+We take security seriously. Our security measures include:
+
+- **Automated Security Scanning**: Weekly automated security scans using GitHub Actions
+- **Dependency Management**: Automated dependency updates via Dependabot
+- **Code Analysis**: 
+  - CodeQL security scanning
+  - Bandit for Python security checks
+  - Safety for dependency vulnerability checks
+- **API Security**:
+  - Rate limiting for API requests
+  - Input validation and sanitization
+  - Secure session management
+  - Error handling for failed requests
+
+For reporting security issues or viewing our security policy, please see our [Security Policy](SECURITY.md).
 
 ## 🌐 Deployment
 
@@ -126,6 +140,8 @@ The application is Vercel-compatible and can be deployed directly using the incl
 3. Commit your changes
 4. Push to the branch
 5. Create a new Pull Request
+
+Please review our [Security Policy](SECURITY.md) before contributing.
 
 ## 📝 License
 
