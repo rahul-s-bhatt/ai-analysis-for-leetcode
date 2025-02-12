@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: leetcode-analysis
+  labels:
+    name: leetcode-analysis
+    environment: production
