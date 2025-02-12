@@ -1,6 +1,10 @@
 # LeetCode Analysis System
 
-A comprehensive system for analyzing LeetCode user profiles and providing personalized insights.
+An advanced analytics tool that provides deep insights into your LeetCode profile, helping you understand your coding patterns, track progress, and optimize your learning path.
+
+[![Security Scan](https://github.com/yourusername/ai-analysis-for-leetcode/actions/workflows/security.yml/badge.svg)](https://github.com/yourusername/ai-analysis-for-leetcode/actions/workflows/security.yml)
+[![Dependency Status](https://img.shields.io/badge/dependencies-up%20to%20date-brightgreen.svg)](https://github.com/yourusername/ai-analysis-for-leetcode/pulls?q=is%3Apr+author%3Aapp%2Fdependabot)
+[![Security Policy](https://img.shields.io/badge/security-policy-brightgreen.svg)](SECURITY.md)
 
 ## Architecture Overview
 
@@ -128,14 +132,13 @@ Web interface for user analysis.
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Submit a pull request
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a new Pull Request
 
-All PRs must:
-- Pass automated tests
-- Include appropriate documentation
-- Follow code style guidelines
+Please review our [Security Policy](SECURITY.md) before contributing.
 
-## License
+## 📝 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
