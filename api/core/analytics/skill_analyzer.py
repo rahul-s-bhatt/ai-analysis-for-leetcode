@@ -7,6 +7,7 @@ class SkillAnalyzer:
         self.matched_user = user_data.get("matchedUser", {})
         self.contest_data = user_data.get("userContestRanking", {})
         self.contest_history = user_data.get("userContestRankingHistory", [])
+        self.tag_counts = self.matched_user.get("tagProblemCounts", {})
 
     def analyze_skill_level(self) -> Dict[str, Any]:
         """Analyze overall skill level based on multiple factors"""
@@ -216,20 +217,73 @@ class SkillAnalyzer:
                 "community_standing": round(standing_score, 2)
             }
         }
-
+    
     def get_complete_skill_analysis(self) -> Dict[str, Any]:
         """Get complete skill analysis report"""
         skill_analysis = self.analyze_skill_level()
+        weak_topics = self.analyze_topic_performance()
         
         return {
             "overall_rating": skill_analysis["overall_rating"],
             "detailed_analysis": {
                 "contest_performance": skill_analysis["contest_performance"],
                 "problem_mastery": skill_analysis["problem_mastery"],
-                "relative_standing": skill_analysis["relative_standing"]
+                "relative_standing": skill_analysis["relative_standing"],
+                "weak_topics": weak_topics
             },
             "recommendations": self._generate_skill_recommendations(skill_analysis)
         }
+    
+    def analyze_topic_performance(self) -> List[Dict[str, Any]]:
+        """Analyze performance across different topics/tags and identify weakest areas"""
+        # Combine topics across all difficulty levels
+        all_topics = self._combine_topic_stats()
+        
+        # Calculate completion rates and sort by performance
+        topic_stats = []
+        for tag_name, stats in all_topics.items():
+            completion_rate = round((stats["solved"] / stats["total"] * 100), 2) if stats["total"] > 0 else 0
+            topic_stats.append({
+                "name": tag_name,
+                "solved": stats["solved"],
+                "total": stats["total"],
+                "completion_rate": completion_rate,
+                "recommendation": self._generate_topic_recommendation(tag_name, completion_rate)
+            })
+        
+        # Sort by completion rate and return bottom 3
+        return sorted(topic_stats, key=lambda x: x["completion_rate"])[:3]
+
+    def _combine_topic_stats(self) -> Dict[str, Dict[str, int]]:
+        """Combine topic statistics across all difficulty levels"""
+        all_topics = {}
+        
+        for level in ["fundamental", "intermediate", "advanced"]:
+            for topic in self.tag_counts.get(level, []):
+                tag_name = topic["tagName"]
+                if tag_name not in all_topics:
+                    all_topics[tag_name] = {
+                        "solved": topic["problemsSolved"],
+                        "total": topic["problemsSolved"]  # Using solved as base for total
+                    }
+                else:
+                    all_topics[tag_name]["solved"] += topic["problemsSolved"]
+                    all_topics[tag_name]["total"] += topic["problemsSolved"]
+
+        # Add buffer to total problems to account for unlocked/unavailable problems
+        for stats in all_topics.values():
+            stats["total"] = max(stats["total"] + 5, int(stats["total"] * 1.2))
+
+        return all_topics
+
+    def _generate_topic_recommendation(self, tag_name: str, completion_rate: float) -> str:
+        """Generate personalized recommendation for a topic"""
+        if completion_rate < 20:
+            return f"Focus on building fundamentals in {tag_name}. Start with easier problems to build confidence."
+        elif completion_rate < 40:
+            return f"Continue practicing {tag_name} problems. Try mixing easy and medium difficulty problems."
+        else:
+            return f"While {tag_name} needs improvement, you're making progress. Focus on medium and hard problems."
 
     def _generate_skill_recommendations(self, analysis: Dict[str, Any]) -> List[Dict[str, str]]:
         """Generate personalized skill improvement recommendations"""

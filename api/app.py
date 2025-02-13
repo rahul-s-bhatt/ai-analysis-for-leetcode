@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify
 from GQLQuery import GQLQuery
 from core.analytics import AnalyticsManager
 from data_formatter import format_user_profile
+import json
 import asyncio
 from asgiref.sync import async_to_sync
 import logging
@@ -136,10 +137,13 @@ def index():
             return render_template('index.html', 
                 error="Failed to process user data. Please try again later.")
         
-        return render_template('results.html', 
+        # Convert analysis to dict to ensure proper JSON serialization
+        analysis_dict = json.loads(json.dumps(analysis))
+        logger.debug(f"Analysis data being passed to template: {analysis_dict}")
+        return render_template('results.html',
                              username=username,
                              stats=formatted_data,
-                             analysis=analysis)
+                             analysis=analysis_dict)
     
     return render_template('index.html')
 

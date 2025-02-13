@@ -43,6 +43,10 @@ class AnalyticsManager:
             self._cache_analysis(analysis)
             
             logger.info("Complete analysis generated successfully")
+            logger.debug(f"Generated analysis structure: {analysis}")
+            if not isinstance(analysis, dict) or 'detailed_analysis' not in analysis:
+                logger.error("Analysis data structure is invalid")
+                return self._generate_fallback_analysis()
             return analysis
 
         except Exception as e:
@@ -61,7 +65,8 @@ class AnalyticsManager:
             "detailed_analysis": {
                 "coding_patterns": pattern_analysis,
                 "skill_assessment": skill_analysis,
-                "learning_path": learning_path
+                "learning_path": learning_path,
+                "weak_topics": skill_analysis.get("detailed_analysis", {}).get("weak_topics", [])
             },
             "recommendations": self._generate_recommendations(
                 pattern_analysis,

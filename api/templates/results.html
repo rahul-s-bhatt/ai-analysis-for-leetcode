@@ -87,6 +87,25 @@
             </div>
         </div>
 
+        <!-- Areas for Improvement -->
+        <div class="card stat-card">
+            <div class="card-header">
+                <h3>Areas for Improvement</h3>
+            </div>
+            <div class="card-body">
+                <div id="weakTopicsChart" class="chart-container"></div>
+                <div class="mt-4">
+                    {% for topic in analysis.detailed_analysis.weak_topics %}
+                    <div class="recommendation-item priority-high mb-3">
+                        <h5>{{ topic.name }}</h5>
+                        <p>Solved: {{ topic.solved }}/{{ topic.total }} ({{ topic.completion_rate }}%)</p>
+                        <p>{{ topic.recommendation }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
         <!-- Key Strengths -->
         <div class="card stat-card">
             <div class="card-header">
@@ -227,6 +246,57 @@
         
         document.addEventListener('DOMContentLoaded', function() {
             try {
+                // Initialize Weak Topics Chart
+                const weakTopics = analysisData.detailed_analysis.weak_topics;
+                if (weakTopics && weakTopics.length > 0) {
+                    const weakTopicsCtx = document.getElementById('weakTopicsChart').getContext('2d');
+                    new Chart(weakTopicsCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: weakTopics.map(topic => topic.name),
+                            datasets: [
+                                {
+                                    label: 'Solved Problems',
+                                    data: weakTopics.map(topic => topic.solved),
+                                    backgroundColor: '#28a745'
+                                },
+                                {
+                                    label: 'Total Problems',
+                                    data: weakTopics.map(topic => topic.total),
+                                    backgroundColor: '#dc3545'
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Number of Problems'
+                                    }
+                                },
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Topics'
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    position: 'top'
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Progress in Challenging Topics'
+                                }
+                            }
+                        }
+                    });
+                }
+
                 // Get practice strategy data
                 const practiceStrategy = analysisData.recommendations.practice_strategy;
                 
