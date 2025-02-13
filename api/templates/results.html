@@ -1,166 +1,103 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>LeetCode Analysis for {{ username }}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Analysis for {{ username }} | LeetCode Insights</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Core CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.css" rel="stylesheet">
-    <style>
-        .card-header {
-            background-color: #f8f9fa;
-        }
-        
-        .stat-card {
-            margin-bottom: 20px;
-        }
-        
-        .progress {
-            height: 20px;
-        }
-        
-        .badge-custom {
-            font-size: 14px;
-        }
-        
-        .recommendation-item {
-            border-left: 4px solid #007bff;
-            padding-left: 15px;
-            margin-bottom: 15px;
-        }
-        
-        .priority-high {
-            border-left-color: #dc3545;
-        }
-        
-        .priority-medium {
-            border-left-color: #ffc107;
-        }
-        
-        .priority-low {
-            border-left-color: #28a745;
-        }
-        
-        .chart-container {
-            min-height: 300px;
-            width: 100%;
-            margin: 20px 0;
-            position: relative;
-        }
-        
-        @media (max-width: 768px) {
-            .chart-container {
-                min-height: 250px;
-            }
-        }
-    </style>
+    <link href="{{ url_for('static', filename='css/results.css') }}" rel="stylesheet">
 </head>
 <body>
-    <div class="container mt-5">
-        <h1 class="mb-4">LeetCode Analysis for {{ username }}</h1>
-        
-        <!-- Overview Section -->
-        <div class="card stat-card">
-            <div class="card-header">
-                <h3>Profile Overview</h3>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4">
-                        <h5>Coding Style</h5>
-                        <p class="lead">{{ analysis.summary.coding_style }}</p>
-                    </div>
-                    <div class="col-md-4">
-                        <h5>Skill Level</h5>
-                        <p class="lead">{{ analysis.summary.skill_level }}</p>
-                    </div>
-                    <div class="col-md-4">
-                        <h5>Overall Score</h5>
-                        <div class="progress">
-                            <div class="progress-bar" role="progressbar" 
-                                 style="width: {{ analysis.summary.overall_score }}%"
-                                 aria-valuenow="{{ analysis.summary.overall_score }}" 
-                                 aria-valuemin="0" aria-valuemax="100">
-                                {{ analysis.summary.overall_score }}%
+    <div id="progress-bar"></div>
+
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero-section d-flex align-items-center">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-8 mx-auto text-center">
+                        <h1 class="display-4 mb-4 fw-bold typing-text">Welcome, {{ username }}!</h1>
+                        <p class="lead text-secondary mb-4">Here's your personalized AI-powered coding journey analysis</p>
+                        <div class="score-card glass-card p-4 mb-4">
+                            <div class="row align-items-center">
+                                <div class="col-md-4">
+                                    <h5>Coding Style</h5>
+                                    <p class="lead mb-0">{{ analysis.summary.coding_style }}</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <h5>Skill Level</h5>
+                                    <p class="lead mb-0">{{ analysis.summary.skill_level }}</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <h5>Overall Score</h5>
+                                    <div class="progress">
+                                        <div class="progress-bar" role="progressbar" 
+                                             style="width: {{ analysis.summary.overall_score }}%"
+                                             aria-valuenow="{{ analysis.summary.overall_score }}" 
+                                             aria-valuemin="0" aria-valuemax="100">
+                                            {{ analysis.summary.overall_score }}%
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Areas for Improvement -->
-        <div class="card stat-card">
-            <div class="card-header">
-                <h3>Areas for Improvement</h3>
-            </div>
-            <div class="card-body">
-                <div id="weakTopicsChart" class="chart-container"></div>
-                <div class="mt-4">
-                    {% for topic in analysis.detailed_analysis.weak_topics %}
-                    <div class="recommendation-item priority-high mb-3">
-                        <h5>{{ topic.name }}</h5>
-                        <p>Solved: {{ topic.solved }}/{{ topic.total }} ({{ topic.completion_rate }}%)</p>
-                        <p>{{ topic.recommendation }}</p>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Key Strengths -->
-        <div class="card stat-card">
-            <div class="card-header">
-                <h3>Key Strengths</h3>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    {% for strength in analysis.summary.key_strengths %}
-                    <div class="col-md-4 mb-3">
-                        <div class="badge bg-success badge-custom w-100 p-2">{{ strength }}</div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Priority Areas -->
-        <div class="card stat-card">
-            <div class="card-header">
-                <h3>Priority Areas</h3>
-            </div>
-            <div class="card-body">
-                {% for area in analysis.summary.priority_areas %}
-                <div class="recommendation-item priority-{{ area.priority }} mb-3">
-                    <h5>{{ area.area }}</h5>
-                    <p>{{ area.reason }}</p>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- Learning Path -->
-        <div class="card stat-card">
-            <div class="card-header">
-                <h3>Personalized Learning Path</h3>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h4>Study Plan</h4>
-                        {% for step in analysis.recommendations.study_plan.weekly_focus %}
-                        <div class="card mb-3">
-                            <div class="card-body">
-                                <h5>Week {{ step.week }}: {{ step.focus_topic }}</h5>
-                                <p><strong>Difficulty:</strong> {{ step.difficulty }}</p>
-                                <p><strong>Target:</strong> {{ step.problems_per_day }} problems/day</p>
-                                <p><strong>Type:</strong> {{ step.type }}</p>
-                            </div>
+        <!-- Main Content -->
+        <div class="row">
+            <!-- Left Column -->
+            <div class="col-lg-8">
+                <!-- Areas for Improvement -->
+                <div class="glass-card p-4 mb-4">
+                    <h3 class="mb-4">Areas for Improvement</h3>
+                    <div id="weakTopicsChart" class="chart-container"></div>
+                    <div class="mt-4">
+                        {% for topic in analysis.detailed_analysis.weak_topics %}
+                        <div class="recommendation-item priority-high">
+                            <h5>{{ topic.name }}</h5>
+                            <p>Solved: {{ topic.solved }}/{{ topic.total }} ({{ topic.completion_rate }}%)</p>
+                            <p class="mb-0">{{ topic.recommendation }}</p>
                         </div>
                         {% endfor %}
                     </div>
-                    <div class="col-md-6">
-                        <h4>Practice Strategy</h4>
-                        <div class="card">
-                            <div class="card-body">
+                </div>
+
+                <!-- Learning Path -->
+                <div class="glass-card p-4 mb-4">
+                    <h3 class="mb-4">Your Learning Journey</h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4 class="mb-3">Study Plan</h4>
+                            {% for step in analysis.recommendations.study_plan.weekly_focus %}
+                            <div class="glass-card p-3 mb-3">
+                                <h5>Week {{ step.week }}: {{ step.focus_topic }}</h5>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Difficulty:</span>
+                                    <span class="badge-custom">{{ step.difficulty }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Target:</span>
+                                    <span class="badge-custom">{{ step.problems_per_day }} problems/day</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span>Type:</span>
+                                    <span class="badge-custom">{{ step.type }}</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <h4 class="mb-3">Practice Strategy</h4>
+                            <div class="glass-card p-3">
                                 <h5>Recommended Approach</h5>
                                 <p>{{ analysis.recommendations.practice_strategy.practice_style.approach }}</p>
                                 <p>{{ analysis.recommendations.practice_strategy.practice_style.suggestion }}</p>
@@ -175,52 +112,52 @@
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Next Steps -->
-        <div class="card stat-card">
-            <div class="card-header">
-                <h3>Immediate Next Steps</h3>
-            </div>
-            <div class="card-body">
-                {% for step in analysis.next_steps %}
-                <div class="recommendation-item mb-3">
-                    <h5>{{ step.action }}</h5>
-                    <p><strong>Timeframe:</strong> {{ step.timeframe }}</p>
-                    <p><strong>Target:</strong> {{ step.target }}</p>
+            <!-- Right Column -->
+            <div class="col-lg-4">
+                <!-- Key Strengths -->
+                <div class="glass-card p-4 mb-4">
+                    <h3 class="mb-4">Key Strengths</h3>
+                    {% for strength in analysis.summary.key_strengths %}
+                    <div class="badge-custom w-100 mb-2 text-center">{{ strength }}</div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
-            </div>
-        </div>
 
-        <!-- Problem-Solving Stats -->
-        <div class="card stat-card">
-            <div class="card-header">
-                <h3>Problem-Solving Statistics</h3>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4 text-center">
-                        <h5>Easy</h5>
-                        <div class="progress mb-3">
+                <!-- Priority Areas -->
+                <div class="glass-card p-4 mb-4">
+                    <h3 class="mb-4">Priority Focus</h3>
+                    {% for area in analysis.summary.priority_areas %}
+                    <div class="recommendation-item priority-{{ area.priority }}">
+                        <h5>{{ area.area }}</h5>
+                        <p class="mb-0">{{ area.reason }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Problem-Solving Stats -->
+                <div class="glass-card p-4 mb-4">
+                    <h3 class="mb-4">Solving Stats</h3>
+                    <div class="mb-3">
+                        <h5 class="mb-2">Easy</h5>
+                        <div class="progress">
                             <div class="progress-bar bg-success" role="progressbar" 
                                  style="width: {{ (stats.stats.easySolved / stats.stats.totalQuestions.Easy * 100) | round }}%">
                                 {{ stats.stats.easySolved }}/{{ stats.stats.totalQuestions.Easy }}
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4 text-center">
-                        <h5>Medium</h5>
-                        <div class="progress mb-3">
+                    <div class="mb-3">
+                        <h5 class="mb-2">Medium</h5>
+                        <div class="progress">
                             <div class="progress-bar bg-warning" role="progressbar" 
                                  style="width: {{ (stats.stats.mediumSolved / stats.stats.totalQuestions.Medium * 100) | round }}%">
                                 {{ stats.stats.mediumSolved }}/{{ stats.stats.totalQuestions.Medium }}
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4 text-center">
-                        <h5>Hard</h5>
-                        <div class="progress mb-3">
+                    <div>
+                        <h5 class="mb-2">Hard</h5>
+                        <div class="progress">
                             <div class="progress-bar bg-danger" role="progressbar" 
                                  style="width: {{ (stats.stats.hardSolved / stats.stats.totalQuestions.Hard * 100) | round }}%">
                                 {{ stats.stats.hardSolved }}/{{ stats.stats.totalQuestions.Hard }}
@@ -231,24 +168,55 @@
             </div>
         </div>
 
-        <div class="mt-4 mb-5">
-            <a href="/" class="btn btn-primary">Back to Home</a>
+        <!-- Back Button -->
+        <div class="text-center my-5">
+            <a href="/" class="btn btn-outline-light px-4 py-2">
+                Back to Home
+            </a>
         </div>
     </div>
 
-    <!-- Chart.js -->
+    <!-- Floating Action Button -->
+    <div class="fab" id="scroll-top">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="18 15 12 9 6 15"></polyline>
+        </svg>
+    </div>
+
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
-    
-    <!-- Initialize chart data -->
     <script>
-        // Safely parse JSON data from Flask
+        // Chart configuration and initialization
         const analysisData = JSON.parse('{{ analysis | tojson | safe }}');
         
+        // Chart.js Global Configuration
+        Chart.defaults.color = '#CBD5E1';
+        Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+        
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Progress Bar
+            const progressBar = document.getElementById('progress-bar');
+            window.addEventListener('scroll', () => {
+                const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+                const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                const scrolled = (winScroll / height) * 100;
+                progressBar.style.width = scrolled + '%';
+            });
+
+            // Scroll to Top Button
+            const scrollTopBtn = document.getElementById('scroll-top');
+            scrollTopBtn.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+
+            // Initialize Charts
             try {
-                // Initialize Weak Topics Chart
-                const weakTopics = analysisData.detailed_analysis.weak_topics;
-                if (weakTopics && weakTopics.length > 0) {
+                // Weak Topics Chart
+                const weakTopics = analysisData.detailed_analysis?.weak_topics;
+                if (weakTopics?.length > 0) {
                     const weakTopicsCtx = document.getElementById('weakTopicsChart').getContext('2d');
                     new Chart(weakTopicsCtx, {
                         type: 'bar',
@@ -258,58 +226,64 @@
                                 {
                                     label: 'Solved Problems',
                                     data: weakTopics.map(topic => topic.solved),
-                                    backgroundColor: '#28a745'
+                                    backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                                    borderColor: 'rgba(16, 185, 129, 1)',
+                                    borderWidth: 2
                                 },
                                 {
                                     label: 'Total Problems',
                                     data: weakTopics.map(topic => topic.total),
-                                    backgroundColor: '#dc3545'
+                                    backgroundColor: 'rgba(236, 72, 153, 0.7)',
+                                    borderColor: 'rgba(236, 72, 153, 1)',
+                                    borderWidth: 2
                                 }
                             ]
                         },
                         options: {
                             responsive: true,
+                            animation: {
+                                duration: 1000,
+                                easing: 'easeInOutQuart'
+                            },
                             scales: {
                                 y: {
                                     beginAtZero: true,
-                                    title: {
-                                        display: true,
-                                        text: 'Number of Problems'
+                                    grid: {
+                                        color: 'rgba(255, 255, 255, 0.1)'
                                     }
                                 },
                                 x: {
-                                    title: {
-                                        display: true,
-                                        text: 'Topics'
+                                    grid: {
+                                        display: false
                                     }
-                                }
-                            },
-                            plugins: {
-                                legend: {
-                                    position: 'top'
-                                },
-                                title: {
-                                    display: true,
-                                    text: 'Progress in Challenging Topics'
                                 }
                             }
                         }
                     });
                 }
 
-                // Get practice strategy data
-                const practiceStrategy = analysisData.recommendations.practice_strategy;
+                // Initialize other charts
+                const practiceStrategy = analysisData.recommendations?.practice_strategy;
                 
-                // Difficulty Distribution Chart
-                if (practiceStrategy && practiceStrategy.difficulty_distribution) {
+                if (practiceStrategy?.difficulty_distribution) {
                     const diffCtx = document.getElementById('difficultyChart').getContext('2d');
                     new Chart(diffCtx, {
-                        type: 'pie',
+                        type: 'doughnut',
                         data: {
                             labels: Object.keys(practiceStrategy.difficulty_distribution),
                             datasets: [{
                                 data: Object.values(practiceStrategy.difficulty_distribution),
-                                backgroundColor: ['#28a745', '#ffc107', '#dc3545']
+                                backgroundColor: [
+                                    'rgba(16, 185, 129, 0.7)',
+                                    'rgba(245, 158, 11, 0.7)',
+                                    'rgba(236, 72, 153, 0.7)'
+                                ],
+                                borderColor: [
+                                    '#10B981',
+                                    '#F59E0B',
+                                    '#EC4899'
+                                ],
+                                borderWidth: 2
                             }]
                         },
                         options: {
@@ -323,16 +297,25 @@
                     });
                 }
 
-                // Time Allocation Chart
-                if (practiceStrategy && practiceStrategy.time_allocation) {
+                if (practiceStrategy?.time_allocation) {
                     const timeCtx = document.getElementById('timeAllocationChart').getContext('2d');
                     new Chart(timeCtx, {
-                        type: 'doughnut',
+                        type: 'polarArea',
                         data: {
                             labels: Object.keys(practiceStrategy.time_allocation),
                             datasets: [{
                                 data: Object.values(practiceStrategy.time_allocation),
-                                backgroundColor: ['#007bff', '#6f42c1', '#20c997']
+                                backgroundColor: [
+                                    'rgba(99, 102, 241, 0.7)',
+                                    'rgba(111, 66, 193, 0.7)',
+                                    'rgba(32, 201, 151, 0.7)'
+                                ],
+                                borderColor: [
+                                    '#6366F1',
+                                    '#6F42C1',
+                                    '#20C997'
+                                ],
+                                borderWidth: 2
                             }]
                         },
                         options: {
@@ -345,6 +328,24 @@
                         }
                     });
                 }
+
+                // Add intersection observer for fade-in animations
+                const observer = new IntersectionObserver(
+                    (entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                entry.target.classList.add('fade-in');
+                                observer.unobserve(entry.target);
+                            }
+                        });
+                    },
+                    { threshold: 0.1 }
+                );
+
+                document.querySelectorAll('.glass-card').forEach(card => {
+                    observer.observe(card);
+                });
+
             } catch (error) {
                 console.error('Error initializing charts:', error);
             }
