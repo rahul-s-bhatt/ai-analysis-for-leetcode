@@ -1,8 +1,5 @@
 {
   "name": "ai-leetcode-analyzer",
   "version": "1.0.0",
-  "private": true,
-  "devDependencies": {
-    "@netlify/plugin-docker": "^1.0.0"
-  }
+  "private": true
 }
