@@ -6,12 +6,14 @@ WORKDIR /app
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    FLASK_ENV=production
+    FLASK_ENV=production \
+    PORT=8080
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     python3-dev \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
@@ -25,9 +27,13 @@ COPY . .
 RUN useradd -m appuser && chown -R appuser:appuser /app
 USER appuser
 
-# Run gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "4", "--threads", "2", "--timeout", "60", "api.app:app"]
+# Netlify-specific labels
+LABEL com.netlify.build-image=true
+LABEL org.opencontainers.image.source=https://github.com/rahul1205/ai-analysis-for-leetcode
 
-# Health check
+# Run gunicorn with dynamic port binding
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:$PORT --workers 4 --threads 2 --timeout 60 api.app:app"]
+
+# Health check using PORT environment variable
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8080/health || exit 1
+    CMD curl -f http://localhost:${PORT}/health || exit 1
