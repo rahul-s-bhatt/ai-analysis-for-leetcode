@@ -1,17 +1,13 @@
 [build]
-  command = "docker build -t ai-leetcode-analyzer ."
+  base = "."
   publish = "api"
+  command = "pip install -r requirements.txt && cd api && gunicorn app:app"
 
 [build.environment]
   PYTHON_VERSION = "3.9"
   NODE_VERSION = "16"
   FLASK_ENV = "production"
-
-[context.production]
-  command = "docker build -t ai-leetcode-analyzer ."
-
-[context.deploy-preview]
-  command = "docker build -t ai-leetcode-analyzer ."
+  PORT = "8080"
 
 [[redirects]]
   from = "/*"
