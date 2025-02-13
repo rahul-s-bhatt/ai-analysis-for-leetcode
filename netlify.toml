@@ -3,19 +3,15 @@
   publish = "api"
 
 [build.environment]
-  NETLIFY_USE_DOCKER = "true"
   PYTHON_VERSION = "3.9"
   NODE_VERSION = "16"
   FLASK_ENV = "production"
 
-[[plugins]]
-  package = "@netlify/plugin-docker"
-
 [context.production]
-  command = "docker build -t ai-leetcode-analyzer . && docker run -d -p 8080:8080 ai-leetcode-analyzer"
+  command = "docker build -t ai-leetcode-analyzer ."
 
 [context.deploy-preview]
-  command = "docker build -t ai-leetcode-analyzer . && docker run -d -p 8080:8080 ai-leetcode-analyzer"
+  command = "docker build -t ai-leetcode-analyzer ."
 
 [[redirects]]
   from = "/*"
