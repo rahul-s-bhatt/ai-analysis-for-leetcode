@@ -1,4 +1,4 @@
-# AI-Powered LeetCode Profile Analyzer
+# LeetCode Analysis System
 
 An advanced analytics tool that provides deep insights into your LeetCode profile, helping you understand your coding patterns, track progress, and optimize your learning path.
 
@@ -6,134 +6,130 @@ An advanced analytics tool that provides deep insights into your LeetCode profil
 [![Dependency Status](https://img.shields.io/badge/dependencies-up%20to%20date-brightgreen.svg)](https://github.com/yourusername/ai-analysis-for-leetcode/pulls?q=is%3Apr+author%3Aapp%2Fdependabot)
 [![Security Policy](https://img.shields.io/badge/security-policy-brightgreen.svg)](SECURITY.md)
 
-## 🚀 Features
+## Architecture Overview
 
-- **Profile Analysis**: Comprehensive analysis of your LeetCode profile using AI
-- **Learning Path**: Personalized recommendations for skill improvement
-- **Pattern Recognition**: Identify coding patterns in your solutions
-- **Skill Assessment**: Detailed breakdown of your technical strengths
-- **Contest Performance**: Analysis of your competition statistics
+The system is built with a modern, scalable architecture:
 
-## 🛠 Tech Stack
+- Flask-based REST API with async support
+- Redis caching layer
+- Prometheus metrics and Grafana dashboards
+- Kubernetes deployment with high availability
+- Automated CI/CD pipeline
 
-- Python 3.11.5
-- Flask for API and Web Interface
-- GraphQL for LeetCode API Integration
-- Async Processing for Performance
-- Docker Support
+## Prerequisites
 
-## 📋 Prerequisites
+- Docker
+- Kubernetes cluster (v1.21+)
+- kubectl
+- GitHub account (for CI/CD)
 
-- Python 3.11.5
-- Docker (optional)
+## Local Development
 
-## 🔧 Installation
-
-### Local Setup
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/ai-analysis-for-leetcode.git
-cd ai-analysis-for-leetcode
-```
-
-2. Create and activate a virtual environment:
+1. Set up the virtual environment:
 ```bash
 python -m venv venv
-# Windows
-.\venv\Scripts\activate
-# Unix/macOS
-source venv/bin/activate
-```
-
-3. Install dependencies:
-```bash
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Docker Setup
-
-1. Build the Docker image:
+2. Run the application:
 ```bash
-docker build -t leetcode-analyzer .
+python -m flask --app api.app run --debug
 ```
 
-2. Run the container:
+## Docker Build
+
+Build the container:
 ```bash
-docker run -p 3000:3000 leetcode-analyzer
+docker build -t leetcode-analysis-api .
 ```
 
-## 🚀 Usage
-
-### Running Locally
-
-1. Start the Flask application:
+Run locally:
 ```bash
-python api/app.py
+docker run -p 8080:8080 leetcode-analysis-api
 ```
 
-2. Open your browser and navigate to:
+## Kubernetes Deployment
+
+1. Create the namespace:
+```bash
+kubectl apply -f k8s/base/namespace.yaml
 ```
-http://localhost:5000
+
+2. Deploy Redis:
+```bash
+kubectl apply -f k8s/base/redis-deployment.yaml
 ```
 
-3. Enter a LeetCode username to analyze
+3. Deploy the API:
+```bash
+kubectl apply -f k8s/base/api-deployment.yaml
+```
 
-### API Endpoints
+4. Deploy monitoring:
+```bash
+kubectl apply -f k8s/monitoring/prometheus.yaml
+kubectl apply -f k8s/monitoring/grafana.yaml
+```
 
-1. Web Interface:
-- `GET /`: Home page with input form
-- `POST /`: Submit username for analysis
+## Monitoring
 
-2. API:
-- `GET /api/analysis/<username>`: Get JSON analysis for a specific user
+Access monitoring dashboards:
 
-## 📊 Features in Detail
+- Prometheus: `http://localhost:9090` (after port-forward)
+- Grafana: `http://localhost:3000` (after port-forward)
 
-### Profile Analysis
-- Submission history analysis
-- Problem-solving patterns
-- Language preferences
-- Time complexity patterns
+Default Grafana credentials:
+- Username: admin
+- Password: admin123
 
-### Learning Path Generation
-- Personalized problem recommendations
-- Skill gap analysis
-- Progress tracking
-- Difficulty progression suggestions
+## CI/CD Pipeline
 
-### Pattern Recognition
-- Common solution patterns
-- Algorithmic preferences
-- Time/space complexity trends
-- Language-specific patterns
+The system uses GitHub Actions for:
+- Automated testing
+- Security scanning
+- Container building
+- Kubernetes deployment
 
-## 🔐 Security
+Pipeline workflow is defined in `.github/workflows/main.yml`
 
-We take security seriously. Our security measures include:
+## Security
 
-- **Automated Security Scanning**: Weekly automated security scans using GitHub Actions
-- **Dependency Management**: Automated dependency updates via Dependabot
-- **Code Analysis**: 
-  - CodeQL security scanning
-  - Bandit for Python security checks
-  - Safety for dependency vulnerability checks
-- **API Security**:
-  - Rate limiting for API requests
-  - Input validation and sanitization
-  - Secure session management
-  - Error handling for failed requests
+Security measures implemented:
+- Container security scanning
+- Dependency vulnerability checks
+- RBAC for Kubernetes resources
+- Network policies
+- Regular security updates
 
-For reporting security issues or viewing our security policy, please see our [Security Policy](SECURITY.md).
+## Health Checks
 
-## 🌐 Deployment
+The API provides health check endpoints:
+- `/health` - Basic application health
+- `/metrics` - Prometheus metrics
 
-The application is Vercel-compatible and can be deployed directly using the included configuration files:
-- `vercel.json`: Vercel deployment configuration
-- `Dockerfile`: Container configuration
-- `requirements.txt`: Python dependencies
+## API Documentation
 
-## 🤝 Contributing
+### Endpoints
+
+#### GET /api/analysis/{username}
+Get analysis for a specific LeetCode user.
+
+Response:
+```json
+{
+    "analysis": {
+        "coding_patterns": {...},
+        "skill_assessment": {...},
+        "recommendations": {...}
+    }
+}
+```
+
+#### POST /
+Web interface for user analysis.
+
+## Contributing
 
 1. Fork the repository
 2. Create your feature branch
@@ -145,8 +141,4 @@ Please review our [Security Policy](SECURITY.md) before contributing.
 
 ## 📝 License
 
-This project is licensed under the terms of the LICENSE file included in the repository.
-
-## 🔍 Issues and Support
-
-For issues, feature requests, or support, please file an issue in the GitHub repository issue tracker.
+This project is licensed under the MIT License - see the LICENSE file for details.
