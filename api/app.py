@@ -18,7 +18,7 @@ REQUEST_COUNT = Counter('http_requests_total', 'Total HTTP requests', ['method',
 REQUEST_LATENCY = Histogram('http_request_duration_seconds', 'HTTP request latency', ['endpoint'])
 ERROR_COUNT = Counter('http_request_errors_total', 'Total HTTP request errors', ['endpoint', 'error_type'])
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static', static_url_path='/static')
 leetcode_api = GQLQuery()
 
 def track_request_latency(endpoint):
