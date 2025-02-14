@@ -1,0 +1,12 @@
+language = "python3"
+run = "gunicorn api.app:app --bind 0.0.0.0:8080 --worker-class sync --workers 1 --threads 8 --timeout 0"
+entrypoint = "api/app.py"
+
+[nix]
+channel = "stable-22_11"
+
+[deployment]
+run = ["sh", "-c", "gunicorn api.app:app --bind 0.0.0.0:8080"]
+
+[env]
+PYTHONPATH = "/home/runner/${REPL_SLUG}"
