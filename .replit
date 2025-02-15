@@ -1,9 +1,0 @@
-language = "python3"
-run = "python3 api/app.py"
-entrypoint = "api/app.py"
-
-[nix]
-channel = "stable-22_11"
-
-[env]
-PYTHONPATH = "${REPL_HOME}"
