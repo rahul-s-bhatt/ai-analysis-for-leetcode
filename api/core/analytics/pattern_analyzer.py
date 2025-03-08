@@ -43,8 +43,7 @@ class PatternAnalyzer:
 
     def _analyze_preferred_topics(self) -> Dict[str, List[str]]:
         """Analyze user's topic preferences"""
-        topic_preferences = {"strong": [], "moderate": [], "weak": []}
-        
+        topic_preferences: Dict[str, List[str]] = {"strong": [], "moderate": [], "weak": []}
         for level in ["advanced", "intermediate", "fundamental"]:
             topics = self.tag_counts.get(level, [])
             for topic in topics:
