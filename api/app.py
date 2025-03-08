@@ -74,7 +74,12 @@ def analyze_user_data(username):
                 endpoint='/api/analysis',
                 error_type=type(e).__name__
             ).inc()
-            return None
+            # Create analytics manager to get fallback analysis
+            analytics_manager = AnalyticsManager({})
+            return {
+                "user_data": {},
+                "analysis": analytics_manager._generate_fallback_analysis()
+            }
 
     try:
         loop = asyncio.new_event_loop()
@@ -89,7 +94,12 @@ def analyze_user_data(username):
             endpoint='/api/analysis',
             error_type=type(e).__name__
         ).inc()
-        return None
+        # Return fallback analysis for event loop errors
+        analytics_manager = AnalyticsManager({})
+        return {
+            "user_data": {},
+            "analysis": analytics_manager._generate_fallback_analysis()
+        }
 
 @app.route('/health')
 def health_check():

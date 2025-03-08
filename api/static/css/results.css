@@ -107,6 +107,67 @@ h1, h2, h3, h4, h5, h6 {
     border-radius: 1rem;
 }
 
+.no-data-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    padding: 1rem;
+    background: var(--card-bg);
+    border-radius: 0.5rem;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.no-data-message p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    opacity: 0.8;
+}
+
+/* Insights Dashboard Specific Styles */
+.insights-dashboard .glass-card {
+    height: 100%;
+}
+
+.insights-dashboard .chart-container {
+    min-height: 250px;
+    background: transparent;
+    padding: 0;
+}
+
+/* Timeline Chart Styles */
+#skillTimelineChart {
+    height: 350px;
+}
+
+/* Matrix Chart Styles */
+#topicMatrixChart {
+    height: 300px;
+}
+
+/* Pattern Analysis Styles */
+#patternRadarChart {
+    height: 300px;
+}
+
+/* Velocity Chart Styles */
+#velocityChart {
+    height: 300px;
+}
+
+/* Chart Tooltips */
+.chart-tooltip {
+    background: var(--card-bg);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    z-index: 1000;
+}
+
 .fab {
     position: fixed;
     bottom: 2rem;

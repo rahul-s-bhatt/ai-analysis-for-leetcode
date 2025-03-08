@@ -28,20 +28,30 @@
                             <div class="row align-items-center">
                                 <div class="col-md-4">
                                     <h5>Coding Style</h5>
-                                    <p class="lead mb-0">{{ analysis.summary.coding_style }}</p>
-                                </div>
-                                <div class="col-md-4">
-                                    <h5>Skill Level</h5>
-                                    <p class="lead mb-0">{{ analysis.summary.skill_level }}</p>
+                                    <p class="lead mb-0">{{ analysis.summary.coding_style or 'Not Available' }}</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <h5>Skill Level</h5>
+                                        <p class="lead mb-0">{{ analysis.summary.skill_level or 'Not Available' }}</p>
                                 </div>
                                 <div class="col-md-4">
                                     <h5>Overall Score</h5>
                                     <div class="progress">
-                                        <div class="progress-bar" role="progressbar" 
-                                             style="width: {{ analysis.summary.overall_score }}%"
-                                             aria-valuenow="{{ analysis.summary.overall_score }}" 
-                                             aria-valuemin="0" aria-valuemax="100">
+                                        {% if analysis.summary.overall_score is defined %}
+                                        <div class="progress-bar" role="progressbar"
+                                             aria-valuenow="{{ analysis.summary.overall_score }}"
+                                             aria-valuemin="0" aria-valuemax="100"
+                                             data-width="{{ analysis.summary.overall_score }}">
                                             {{ analysis.summary.overall_score }}%
+                                        </div>
+                                        {% else %}
+                                        <div class="progress-bar" role="progressbar"
+                                             aria-valuenow="0"
+                                             aria-valuemin="0" aria-valuemax="100"
+                                             data-width="0">
+                                            N/A
+                                        </div>
+                                        {% endif %}
                                         </div>
                                     </div>
                                 </div>
@@ -61,7 +71,7 @@
                     <h3 class="mb-4">Areas for Improvement</h3>
                     <div id="weakTopicsChart" class="chart-container"></div>
                     <div class="mt-4">
-                        {% for topic in analysis.detailed_analysis.weak_topics %}
+                        {% for topic in analysis.detailed_analysis.skill_assessment.detailed_analysis.weak_topics %}
                         <div class="recommendation-item priority-high">
                             <h5>{{ topic.name }}</h5>
                             <p>Solved: {{ topic.solved }}/{{ topic.total }} ({{ topic.completion_rate }}%)</p>
@@ -77,30 +87,40 @@
                     <div class="row">
                         <div class="col-md-6">
                             <h4 class="mb-3">Study Plan</h4>
-                            {% for step in analysis.recommendations.study_plan.weekly_focus %}
-                            <div class="glass-card p-3 mb-3">
-                                <h5>Week {{ step.week }}: {{ step.focus_topic }}</h5>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>Difficulty:</span>
-                                    <span class="badge-custom">{{ step.difficulty }}</span>
+                            {% if analysis.recommendations.study_plan.weekly_focus %}
+                                {% for step in analysis.recommendations.study_plan.weekly_focus %}
+                                <div class="glass-card p-3 mb-3">
+                                    <h5>Week {{ step.week }}: {{ step.focus_topic }}</h5>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Difficulty:</span>
+                                        <span class="badge-custom">{{ step.difficulty }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Target:</span>
+                                        <span class="badge-custom">{{ step.problems_per_day }} problems/day</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Type:</span>
+                                        <span class="badge-custom">{{ step.type }}</span>
+                                    </div>
                                 </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>Target:</span>
-                                    <span class="badge-custom">{{ step.problems_per_day }} problems/day</span>
+                                {% endfor %}
+                            {% else %}
+                                <div class="glass-card p-3 mb-3">
+                                    <p class="text-secondary mb-0">Study plan will be available once you complete more problems.</p>
                                 </div>
-                                <div class="d-flex justify-content-between">
-                                    <span>Type:</span>
-                                    <span class="badge-custom">{{ step.type }}</span>
-                                </div>
-                            </div>
-                            {% endfor %}
+                            {% endif %}
                         </div>
                         <div class="col-md-6">
                             <h4 class="mb-3">Practice Strategy</h4>
                             <div class="glass-card p-3">
                                 <h5>Recommended Approach</h5>
-                                <p>{{ analysis.recommendations.practice_strategy.practice_style.approach }}</p>
-                                <p>{{ analysis.recommendations.practice_strategy.practice_style.suggestion }}</p>
+                                {% if analysis.recommendations.practice_strategy.practice_style %}
+                                    <p>{{ analysis.recommendations.practice_strategy.practice_style.approach }}</p>
+                                    <p>{{ analysis.recommendations.practice_strategy.practice_style.suggestion }}</p>
+                                {% else %}
+                                    <p class="text-secondary">Practice recommendations will be generated based on your solving patterns.</p>
+                                {% endif %}
                                 
                                 <h5 class="mt-4">Difficulty Distribution</h5>
                                 <div id="difficultyChart" class="chart-container"></div>
@@ -118,20 +138,32 @@
                 <!-- Key Strengths -->
                 <div class="glass-card p-4 mb-4">
                     <h3 class="mb-4">Key Strengths</h3>
-                    {% for strength in analysis.summary.key_strengths %}
-                    <div class="badge-custom w-100 mb-2 text-center">{{ strength }}</div>
-                    {% endfor %}
+                    {% if analysis.summary.key_strengths %}
+                        {% for strength in analysis.summary.key_strengths %}
+                        <div class="badge-custom w-100 mb-2 text-center">{{ strength }}</div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-secondary text-center">
+                            <p class="mb-0">Your strengths will be identified as you solve more problems.</p>
+                        </div>
+                    {% endif %}
                 </div>
 
                 <!-- Priority Areas -->
                 <div class="glass-card p-4 mb-4">
                     <h3 class="mb-4">Priority Focus</h3>
-                    {% for area in analysis.summary.priority_areas %}
-                    <div class="recommendation-item priority-{{ area.priority }}">
-                        <h5>{{ area.area }}</h5>
-                        <p class="mb-0">{{ area.reason }}</p>
-                    </div>
-                    {% endfor %}
+                    {% if analysis.summary.priority_areas %}
+                        {% for area in analysis.summary.priority_areas %}
+                        <div class="recommendation-item priority-{{ area.priority }}">
+                            <h5>{{ area.area }}</h5>
+                            <p class="mb-0">{{ area.reason }}</p>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-secondary text-center">
+                            <p class="mb-0">Priority areas will be highlighted as your coding profile develops.</p>
+                        </div>
+                    {% endif %}
                 </div>
 
                 <!-- Problem-Solving Stats -->
@@ -140,8 +172,8 @@
                     <div class="mb-3">
                         <h5 class="mb-2">Easy</h5>
                         <div class="progress">
-                            <div class="progress-bar bg-success" role="progressbar" 
-                                 style="width: {{ (stats.stats.easySolved / stats.stats.totalQuestions.Easy * 100) | round }}%">
+                            <div class="progress-bar bg-success" role="progressbar"
+                                 data-width="{{ (stats.stats.easySolved / stats.stats.totalQuestions.Easy * 100) | round }}">
                                 {{ stats.stats.easySolved }}/{{ stats.stats.totalQuestions.Easy }}
                             </div>
                         </div>
@@ -149,8 +181,8 @@
                     <div class="mb-3">
                         <h5 class="mb-2">Medium</h5>
                         <div class="progress">
-                            <div class="progress-bar bg-warning" role="progressbar" 
-                                 style="width: {{ (stats.stats.mediumSolved / stats.stats.totalQuestions.Medium * 100) | round }}%">
+                            <div class="progress-bar bg-warning" role="progressbar"
+                                 data-width="{{ (stats.stats.mediumSolved / stats.stats.totalQuestions.Medium * 100) | round }}">
                                 {{ stats.stats.mediumSolved }}/{{ stats.stats.totalQuestions.Medium }}
                             </div>
                         </div>
@@ -158,8 +190,8 @@
                     <div>
                         <h5 class="mb-2">Hard</h5>
                         <div class="progress">
-                            <div class="progress-bar bg-danger" role="progressbar" 
-                                 style="width: {{ (stats.stats.hardSolved / stats.stats.totalQuestions.Hard * 100) | round }}%">
+                            <div class="progress-bar bg-danger" role="progressbar"
+                                 data-width="{{ (stats.stats.hardSolved / stats.stats.totalQuestions.Hard * 100) | round }}">
                                 {{ stats.stats.hardSolved }}/{{ stats.stats.totalQuestions.Hard }}
                             </div>
                         </div>
@@ -167,6 +199,64 @@
                 </div>
             </div>
         </div>
+
+        <!-- Insights Dashboard -->
+        <section id="insights" class="insights-dashboard mb-5">
+            <div class="glass-card p-4">
+                <div class="row">
+                    <div class="col-12">
+                        <h2 class="mb-4">Insights Dashboard</h2>
+                        <p class="text-secondary mb-4">Deep dive into your coding journey analytics</p>
+                    </div>
+                </div>
+                
+                <div class="row g-4">
+                    <!-- Skill Timeline -->
+                    <div class="col-lg-8">
+                        <div class="glass-card p-4">
+                            <h4>Skill Progression Timeline</h4>
+                            <div id="skillTimelineChart" class="chart-container">
+                                <div class="text-center py-4 no-data-message" style="display: none;">
+                                    <p class="text-secondary">Not enough data to display skill progression.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Topic Matrix -->
+                    <div class="col-lg-4">
+                        <div class="glass-card p-4">
+                            <h4>Topic Mastery Matrix</h4>
+                            <div id="topicMatrixChart" class="chart-container"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pattern Analysis -->
+                    <div class="col-lg-6">
+                        <div class="glass-card p-4">
+                            <h4>Problem-Solving Patterns</h4>
+                            <div id="patternRadarChart" class="chart-container">
+                                <div class="text-center py-4 no-data-message" style="display: none;">
+                                    <p class="text-secondary">Problem-solving pattern data unavailable.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Learning Velocity -->
+                    <div class="col-lg-6">
+                        <div class="glass-card p-4">
+                            <h4>Learning Velocity</h4>
+                            <div id="velocityChart" class="chart-container">
+                                <div class="text-center py-4 no-data-message" style="display: none;">
+                                    <p class="text-secondary">Learning velocity data not yet available.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <!-- Back Button -->
         <div class="text-center my-5">
@@ -212,10 +302,35 @@
                 });
             });
 
+            // Helper function to show/hide no-data message
+            const showNoDataMessage = (containerId) => {
+                const container = document.getElementById(containerId);
+                if (container) {
+                    const noDataMessage = container.querySelector('.no-data-message');
+                    if (noDataMessage) {
+                        noDataMessage.style.display = 'block';
+                    }
+                }
+            };
+
             // Initialize Charts
             try {
+                // Show/hide no-data messages based on data availability
+                if (!analysisData?.detailed_analysis?.skill_assessment?.detailed_analysis?.skill_progression?.length) {
+                    showNoDataMessage('skillTimelineChart');
+                }
+                if (!Object.keys(analysisData?.detailed_analysis?.skill_assessment?.detailed_analysis?.topic_mastery || {}).length) {
+                    showNoDataMessage('topicMatrixChart');
+                }
+                if (!Object.keys(analysisData?.detailed_analysis?.skill_assessment?.detailed_analysis?.solving_patterns || {}).length) {
+                    showNoDataMessage('patternRadarChart');
+                }
+                if (!Object.keys(analysisData?.detailed_analysis?.skill_assessment?.detailed_analysis?.learning_velocity || {}).length) {
+                    showNoDataMessage('velocityChart');
+                }
+
                 // Weak Topics Chart
-                const weakTopics = analysisData.detailed_analysis?.weak_topics;
+                const weakTopics = analysisData.detailed_analysis?.skill_assessment?.detailed_analysis?.weak_topics;
                 if (weakTopics?.length > 0) {
                     const weakTopicsCtx = document.getElementById('weakTopicsChart').getContext('2d');
                     new Chart(weakTopicsCtx, {
@@ -323,6 +438,159 @@
                             plugins: {
                                 legend: {
                                     position: 'right'
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Initialize Insights Dashboard Charts
+                const skillData = analysisData.detailed_analysis?.skill_assessment?.detailed_analysis?.skill_progression || [];
+                if (skillData.length > 0) {
+                    const skillCtx = document.getElementById('skillTimelineChart').getContext('2d');
+                    new Chart(skillCtx, {
+                        type: 'line',
+                        data: {
+                            labels: skillData.map(entry => entry.date),
+                            datasets: [{
+                                label: 'Skill Progress',
+                                data: skillData.map(entry => entry.score),
+                                borderColor: '#6366F1',
+                                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    backgroundColor: 'rgba(30, 41, 59, 0.9)',
+                                    titleColor: '#F8FAFC',
+                                    bodyColor: '#CBD5E1'
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: {
+                                        color: 'rgba(255, 255, 255, 0.1)'
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        display: false
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                const topicMastery = analysisData.detailed_analysis?.skill_assessment?.detailed_analysis?.topic_mastery || {};
+                if (Object.keys(topicMastery).length > 0) {
+                    const matrixCtx = document.getElementById('topicMatrixChart').getContext('2d');
+                    new Chart(matrixCtx, {
+                        type: 'radar',
+                        data: {
+                            labels: Object.keys(topicMastery),
+                            datasets: [{
+                                label: 'Topic Mastery',
+                                data: Object.values(topicMastery),
+                                backgroundColor: 'rgba(236, 72, 153, 0.2)',
+                                borderColor: '#EC4899',
+                                borderWidth: 2,
+                                pointBackgroundColor: '#EC4899'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                r: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        display: false
+                                    },
+                                    grid: {
+                                        color: 'rgba(255, 255, 255, 0.1)'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                const patterns = analysisData.detailed_analysis?.skill_assessment?.detailed_analysis?.solving_patterns || {};
+                if (Object.keys(patterns).length > 0) {
+                    const patternCtx = document.getElementById('patternRadarChart').getContext('2d');
+                    new Chart(patternCtx, {
+                        type: 'polarArea',
+                        data: {
+                            labels: Object.keys(patterns),
+                            datasets: [{
+                                data: Object.values(patterns),
+                                backgroundColor: [
+                                    'rgba(99, 102, 241, 0.7)',
+                                    'rgba(236, 72, 153, 0.7)',
+                                    'rgba(16, 185, 129, 0.7)',
+                                    'rgba(245, 158, 11, 0.7)'
+                                ],
+                                borderWidth: 0
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: 'right'
+                                }
+                            }
+                        }
+                    });
+                }
+
+                const velocityData = analysisData.detailed_analysis?.skill_assessment?.detailed_analysis?.learning_velocity || {};
+                if (Object.keys(velocityData).length > 0) {
+                    const velocityCtx = document.getElementById('velocityChart').getContext('2d');
+                    new Chart(velocityCtx, {
+                        type: 'line',
+                        data: {
+                            labels: Object.keys(velocityData),
+                            datasets: [{
+                                label: 'Problems Solved',
+                                data: Object.values(velocityData),
+                                borderColor: '#10B981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: {
+                                        color: 'rgba(255, 255, 255, 0.1)'
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        display: false
+                                    }
                                 }
                             }
                         }
