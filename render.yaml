@@ -3,10 +3,10 @@ services:
     name: ai-analysis-for-leetcode
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn api.app:app
+    startCommand: gunicorn app:app
     python_version: 3.11.0
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
       - key: PYTHONPATH
-        value: .
+        value: ./api
