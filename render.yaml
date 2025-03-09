@@ -10,3 +10,5 @@ services:
         value: 3.11.0
       - key: PYTHONPATH
         value: ./api
+      - key: PORT
+        value: 10000
