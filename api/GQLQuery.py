@@ -233,7 +233,9 @@ class GQLQuery:
                     "Referer": f"https://leetcode.com/{username}/",
                     "Origin": "https://leetcode.com",
                     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-                    "Cookie": f"LEETCODE_SESSION={self.session_cookie}"
+                    "Cookie": f"LEETCODE_SESSION={self.session_cookie}",
+                    "Accept": "*/*",
+                    "Access-Control-Allow-Origin": "*"
                 }
 
                 async with session.post(

@@ -157,8 +157,11 @@ def index():
         formatted_data = format_user_profile(user_data)
         if formatted_data is None:
             logger.error(f"Failed to format data for user: {username}")
-            return render_template('index.html', 
+            return render_template('index.html',
                 error="Failed to process user data. Please try again later.")
+        
+        # Log profile picture URL
+        logger.info(f"Profile picture URL: {formatted_data.get('profile', {}).get('userAvatar')}")
         
         # Convert analysis to dict to ensure proper JSON serialization
         analysis_dict = json.loads(json.dumps(analysis))
