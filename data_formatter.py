@@ -92,6 +92,7 @@ def format_user_profile(data):
                 "company": profile.get("profile", {}).get("company", ""),
                 "school": profile.get("profile", {}).get("school", ""),
                 "starRating": profile.get("profile", {}).get("starRating", 0),
+                "userAvatar": profile.get("profile", {}).get("userAvatar", ""),
             },
             "stats": default_stats if not profile else format_solved_problems_data(data),
             "topics": {} if not profile else format_topic_tags_data(data),

@@ -22,6 +22,9 @@
             <div class="container">
                 <div class="row align-items-center">
                     <div class="col-lg-8 mx-auto text-center">
+                        <div class="profile-pic-container">
+                            <img src="{{ stats.profile.userAvatar }}" alt="{{ username }}'s profile picture" class="profile-pic" onerror="this.src='https://leetcode.com/static/images/default_avatar.png'">
+                        </div>
                         <h1 class="display-4 mb-4 fw-bold typing-text">Welcome, {{ username }}!</h1>
                         <p class="lead text-secondary mb-4">Here's your personalized AI-powered coding journey analysis</p>
                         <div class="score-card glass-card p-4 mb-4">
