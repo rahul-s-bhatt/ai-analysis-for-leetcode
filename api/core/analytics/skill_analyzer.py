@@ -229,7 +229,11 @@ class SkillAnalyzer:
                 "contest_performance": skill_analysis["contest_performance"],
                 "problem_mastery": skill_analysis["problem_mastery"],
                 "relative_standing": skill_analysis["relative_standing"],
-                "weak_topics": weak_topics
+                "weak_topics": weak_topics,
+                "skill_progression": self._generate_skill_progression(),
+                "topic_mastery": self._generate_topic_mastery_scores(),
+                "solving_patterns": self._analyze_solving_patterns(),
+                "learning_velocity": self._calculate_learning_velocity()
             },
             "recommendations": self._generate_skill_recommendations(skill_analysis)
         }
@@ -309,3 +313,141 @@ class SkillAnalyzer:
                 })
 
         return recommendations
+
+    def _generate_skill_progression(self) -> List[Dict[str, Any]]:
+        """Generate skill progression timeline data"""
+        submissions = self.matched_user.get("recentSubmissionList", [])
+        if not submissions:
+            return []
+
+        # Sort submissions by timestamp
+        sorted_submissions = sorted(
+            submissions,
+            key=lambda x: x.get("timestamp", 0)
+        )
+
+        # Calculate cumulative score over time
+        progression = []
+        total_solved = 0
+        running_difficulty_score = 0
+
+        for submission in sorted_submissions:
+            if submission.get("statusDisplay") == "Accepted":
+                total_solved += 1
+                # Weight by difficulty
+                difficulty = submission.get("difficulty", "")
+                difficulty_score = {
+                    "Easy": 1,
+                    "Medium": 2,
+                    "Hard": 4
+                }.get(difficulty, 1)
+                
+                running_difficulty_score += difficulty_score
+
+                # Calculate weighted score
+                score = (running_difficulty_score / total_solved) * (total_solved ** 0.5)
+                
+                progression.append({
+                    "date": datetime.fromtimestamp(submission.get("timestamp", 0)).strftime("%Y-%m-%d"),
+                    "score": round(score, 2),
+                    "total_solved": total_solved,
+                    "difficulty": difficulty
+                })
+
+        # Return last 30 data points for better visualization
+        return progression[-30:] if len(progression) > 30 else progression
+
+    def _generate_topic_mastery_scores(self) -> Dict[str, float]:
+        """Generate topic mastery scores for visualization"""
+        topic_stats = self._combine_topic_stats()
+        topic_scores = {}
+        
+        for topic, stats in topic_stats.items():
+            # Calculate base completion score
+            completion_rate = (stats["solved"] / stats["total"]) if stats["total"] > 0 else 0
+            
+            # Calculate success rate from submissions if available
+            success_rate = 0
+            topic_submissions = [s for s in self.matched_user.get("recentSubmissionList", [])
+                               if topic in s.get("topicTags", [])]
+            if topic_submissions:
+                successful = len([s for s in topic_submissions if s.get("statusDisplay") == "Accepted"])
+                success_rate = successful / len(topic_submissions)
+            
+            # Calculate final score combining completion and success rate
+            final_score = (completion_rate * 0.7 + success_rate * 0.3) * 100
+            topic_scores[topic] = round(min(final_score, 100), 2)
+        
+        # Return top 8 topics for better visualization
+        sorted_topics = sorted(topic_scores.items(), key=lambda x: x[1], reverse=True)
+        return dict(sorted_topics[:8])
+
+    def _analyze_solving_patterns(self) -> Dict[str, float]:
+        """Analyze problem-solving patterns and approaches"""
+        submissions = self.matched_user.get("recentSubmissionList", [])
+        if not submissions:
+            return {}
+
+        patterns = {
+            "First Try Success": 0,  # Problems solved on first attempt
+            "Analytical": 0,         # Quick solutions with optimal approach
+            "Iterative": 0,         # Multiple attempts with improvement
+            "Persistent": 0         # Eventually solved after many attempts
+        }
+
+        # Group submissions by problem ID to analyze attempt patterns
+        problem_attempts = {}
+        for sub in submissions:
+            prob_id = sub.get("problemId")
+            if prob_id:
+                if prob_id not in problem_attempts:
+                    problem_attempts[prob_id] = []
+                problem_attempts[prob_id].append(sub)
+
+        total_problems = len(problem_attempts)
+        if total_problems == 0:
+            return patterns
+    
+        def _calculate_learning_velocity(self) -> Dict[str, int]:
+            """Calculate learning velocity (problems solved over time)"""
+            submissions = self.matched_user.get("recentSubmissionList", [])
+            if not submissions:
+                return {}
+    
+            # Group accepted submissions by date
+            daily_solved = {}
+            for sub in submissions:
+                if sub.get("statusDisplay") == "Accepted":
+                    date = datetime.fromtimestamp(sub.get("timestamp", 0)).strftime("%Y-%m-%d")
+                    if date not in daily_solved:
+                        daily_solved[date] = set()  # Use set to avoid counting same problem twice
+                    daily_solved[date].add(sub.get("problemId"))
+    
+            # Convert to daily counts and get last 7 days
+            velocity_data = {}
+            dates = sorted(daily_solved.keys())[-7:]  # Last 7 days
+            for date in dates:
+                velocity_data[date] = len(daily_solved[date])
+    
+            return velocity_data
+
+        # Analyze patterns for each problem
+        for attempts in problem_attempts.values():
+            attempts = sorted(attempts, key=lambda x: x.get("timestamp", 0))
+            success = any(a.get("statusDisplay") == "Accepted" for a in attempts)
+            
+            if success:
+                if len(attempts) == 1:
+                    patterns["First Try Success"] += 1
+                elif len(attempts) <= 3:
+                    patterns["Analytical"] += 1
+                elif len(attempts) <= 5:
+                    patterns["Iterative"] += 1
+                else:
+                    patterns["Persistent"] += 1
+
+        # Convert to percentages
+        for key in patterns:
+            patterns[key] = round((patterns[key] / total_problems) * 100, 2)
+
+        return patterns

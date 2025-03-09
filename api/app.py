@@ -19,7 +19,19 @@ REQUEST_LATENCY = Histogram('http_request_duration_seconds', 'HTTP request laten
 ERROR_COUNT = Counter('http_request_errors_total', 'Total HTTP request errors', ['endpoint', 'error_type'])
 
 app = Flask(__name__, static_folder='static', static_url_path='/static')
-leetcode_api = GQLQuery()
+
+@app.route('/test')
+def test():
+    logger.info("Test endpoint hit")
+    return jsonify({"status": "ok", "message": "Server is running"})
+
+try:
+    logger.info("Initializing LeetCode API client...")
+    leetcode_api = GQLQuery()
+    logger.info("LeetCode API client initialized successfully")
+except Exception as e:
+    logger.error(f"Failed to initialize LeetCode API client: {e}", exc_info=True)
+    raise
 
 def track_request_latency(endpoint):
     """Decorator to track request latency"""
@@ -52,7 +64,8 @@ def analyze_user_data(username):
         try:
             async with leetcode_api:  # Using context manager to handle session
                 data = await leetcode_api.get_user_complete_data(username)
-                logger.debug(f"Raw API response: {data}")
+                logger.info(f"Raw API response status: {'Success' if data else 'Empty'}")
+                logger.info(f"API response content: {json.dumps(data, indent=2)}")
                 if not data:
                     return None
 
@@ -74,7 +87,12 @@ def analyze_user_data(username):
                 endpoint='/api/analysis',
                 error_type=type(e).__name__
             ).inc()
-            return None
+            # Create analytics manager to get fallback analysis
+            analytics_manager = AnalyticsManager({})
+            return {
+                "user_data": {},
+                "analysis": analytics_manager._generate_fallback_analysis()
+            }
 
     try:
         loop = asyncio.new_event_loop()
@@ -89,7 +107,12 @@ def analyze_user_data(username):
             endpoint='/api/analysis',
             error_type=type(e).__name__
         ).inc()
-        return None
+        # Return fallback analysis for event loop errors
+        analytics_manager = AnalyticsManager({})
+        return {
+            "user_data": {},
+            "analysis": analytics_manager._generate_fallback_analysis()
+        }
 
 @app.route('/health')
 def health_check():
@@ -139,7 +162,9 @@ def index():
         
         # Convert analysis to dict to ensure proper JSON serialization
         analysis_dict = json.loads(json.dumps(analysis))
-        logger.debug(f"Analysis data being passed to template: {analysis_dict}")
+        logger.info(f"Username: {username}")
+        logger.info(f"Stats data being passed to template: {formatted_data}")
+        logger.info(f"Analysis data being passed to template: {analysis_dict}")
         return render_template('results.html',
                              username=username,
                              stats=formatted_data,
@@ -157,4 +182,8 @@ def get_analysis(username):
     return jsonify(result["analysis"])
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080)
+    print("Starting Flask server...")
+    print("Debug mode:", app.debug)
+    print("Host: 0.0.0.0")
+    print("Port: 8080")
+    app.run(host='0.0.0.0', port=8080, debug=True)

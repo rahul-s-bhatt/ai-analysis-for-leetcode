@@ -329,15 +329,49 @@ class AnalyticsManager:
 
     def _generate_fallback_analysis(self) -> Dict[str, Any]:
         """Generate a basic analysis when full analysis fails."""
+        timestamp = datetime.now().isoformat()
         return {
             "summary": {
                 "message": "Basic analysis generated due to error in detailed analysis",
                 "coding_style": "Not available",
-                "skill_level": "Not available"
+                "skill_level": "Not available",
+                "overall_score": 0,
+                "key_strengths": [],
+                "priority_areas": []
+            },
+            "detailed_analysis": {
+                "skill_assessment": {
+                    "detailed_analysis": {
+                        "weak_topics": [],
+                        "skill_progression": [],
+                        "topic_mastery": {},
+                        "solving_patterns": {},
+                        "learning_velocity": {}
+                    }
+                }
             },
             "recommendations": {
                 "message": "Please try again later for detailed recommendations",
-                "general_advice": "Continue practicing regularly"
+                "general_advice": "Continue practicing regularly",
+                "study_plan": {
+                    "weekly_focus": []
+                },
+                "practice_strategy": {
+                    "practice_style": {
+                        "approach": "Not available",
+                        "suggestion": "Please try again later"
+                    },
+                    "difficulty_distribution": {
+                        "Easy": 0,
+                        "Medium": 0,
+                        "Hard": 0
+                    },
+                    "time_allocation": {
+                        "problem_solving": 0,
+                        "concept_review": 0,
+                        "pattern_recognition": 0
+                    }
+                }
             },
-            "analysis_timestamp": datetime.now().isoformat()
+            "analysis_timestamp": timestamp
         }
