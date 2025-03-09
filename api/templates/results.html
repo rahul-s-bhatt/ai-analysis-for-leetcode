@@ -49,7 +49,7 @@
                                         <div class="progress-bar" role="progressbar"
                                              aria-valuenow="{{ analysis.summary.overall_score }}"
                                              aria-valuemin="0" aria-valuemax="100"
-                                             data-width="{{ analysis.summary.overall_score }}">
+                                             style="width: {{ analysis.summary.overall_score }}%">
                                             {{ analysis.summary.overall_score }}%
                                         </div>
                                         {% else %}
