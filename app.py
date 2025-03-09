@@ -1,3 +1,4 @@
+import os
 from flask import Flask, render_template, request, jsonify
 from api.GQLQuery import GQLQuery
 from api.core.analytics import AnalyticsManager
@@ -191,8 +192,9 @@ def get_analysis(username):
     return jsonify(result["analysis"])
 
 if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 10000))
     print("Starting Flask server...")
     print("Debug mode:", app.debug)
     print("Host: 0.0.0.0")
-    print("Port: 8080")
-    app.run(host='0.0.0.0', port=8080, debug=True)
+    print(f"Port: {port}")
+    app.run(host='0.0.0.0', port=port, debug=True)
