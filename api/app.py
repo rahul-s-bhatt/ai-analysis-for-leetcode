@@ -163,12 +163,16 @@ def index():
         # Convert analysis to dict to ensure proper JSON serialization
         analysis_dict = json.loads(json.dumps(analysis))
         logger.info(f"Username: {username}")
-        logger.info(f"Stats data being passed to template: {formatted_data}")
-        logger.info(f"Analysis data being passed to template: {analysis_dict}")
-        return render_template('results.html',
-                             username=username,
-                             stats=formatted_data,
-                             analysis=analysis_dict)
+        logger.info(f"Username: {username}")
+        logger.info(f"Raw Stats data being passed to template: {json.dumps(formatted_data, indent=2)}")
+        logger.info(f"Raw Analysis data being passed to template: {json.dumps(analysis_dict, indent=2)}")
+        
+        rendered = render_template('results.html',
+                                username=username,
+                                stats=formatted_data,
+                                analysis=analysis_dict)
+        logger.info("Template rendered successfully")
+        return rendered
     
     return render_template('index.html')
 

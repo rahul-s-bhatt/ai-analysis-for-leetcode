@@ -153,11 +153,16 @@ class GQLQuery:
         }
 
         response = await self._call_api(query, username)
+        logger.info(f"Raw API response: {json.dumps(response, indent=2)}")
+        
         if response and 'data' in response:
+            logger.info(f"Received valid data for user: {username}")
+            logger.debug(f"Data structure: {json.dumps(response['data'], indent=2)}")
             self._cache.set(cache_key, response['data'], 'profile')
             return response['data']
 
         logger.error(f"Failed to fetch complete data for {username}")
+        logger.error(f"Response structure: {json.dumps(response, indent=2) if response else 'No response'}")
         return {}
 
     async def __aenter__(self):
@@ -242,13 +247,23 @@ class GQLQuery:
 
                     response_json = await response.json()
 
+                    # Log response status and headers
+                    logger.info(f"Response status: {response.status}")
+                    logger.info(f"Response headers: {dict(response.headers)}")
+                    
                     if response.ok:
-                        logger.debug(
-                            f"Response data: {json.dumps(response_json, indent=2)}")
+                        if not response_json:
+                            logger.error("Empty JSON response received")
+                            return {}
+                            
+                        logger.debug(f"Response data: {json.dumps(response_json, indent=2)}")
+                        if 'errors' in response_json:
+                            logger.error(f"GraphQL errors: {json.dumps(response_json['errors'], indent=2)}")
                         return response_json
                     else:
-                        logger.error(f"Request failed: {response_json}")
-                        return response_json
+                        logger.error(f"Request failed with status {response.status}")
+                        logger.error(f"Error response: {json.dumps(response_json, indent=2)}")
+                        return {}
         except Exception as e:
             logger.error(f"API call failed: {str(e)}", exc_info=True)
             raise

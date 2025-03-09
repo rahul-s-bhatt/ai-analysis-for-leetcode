@@ -173,8 +173,8 @@
                         <h5 class="mb-2">Easy</h5>
                         <div class="progress">
                             <div class="progress-bar bg-success" role="progressbar"
-                                 data-width="{{ (stats.stats.easySolved / stats.stats.totalQuestions.Easy * 100) | round }}">
-                                {{ stats.stats.easySolved }}/{{ stats.stats.totalQuestions.Easy }}
+                                 data-width="{{ (stats.stats.easySolved / stats.stats.totalQuestions.Easy * 100) | round if stats.stats.totalQuestions.Easy else 0 }}">
+                                {{ stats.stats.easySolved or 0 }}/{{ stats.stats.totalQuestions.Easy or 0 }}
                             </div>
                         </div>
                     </div>
@@ -182,8 +182,8 @@
                         <h5 class="mb-2">Medium</h5>
                         <div class="progress">
                             <div class="progress-bar bg-warning" role="progressbar"
-                                 data-width="{{ (stats.stats.mediumSolved / stats.stats.totalQuestions.Medium * 100) | round }}">
-                                {{ stats.stats.mediumSolved }}/{{ stats.stats.totalQuestions.Medium }}
+                                 data-width="{{ (stats.stats.mediumSolved / stats.stats.totalQuestions.Medium * 100) | round if stats.stats.totalQuestions.Medium else 0 }}">
+                                {{ stats.stats.mediumSolved or 0 }}/{{ stats.stats.totalQuestions.Medium or 0 }}
                             </div>
                         </div>
                     </div>
@@ -191,8 +191,8 @@
                         <h5 class="mb-2">Hard</h5>
                         <div class="progress">
                             <div class="progress-bar bg-danger" role="progressbar"
-                                 data-width="{{ (stats.stats.hardSolved / stats.stats.totalQuestions.Hard * 100) | round }}">
-                                {{ stats.stats.hardSolved }}/{{ stats.stats.totalQuestions.Hard }}
+                                 data-width="{{ (stats.stats.hardSolved / stats.stats.totalQuestions.Hard * 100) | round if stats.stats.totalQuestions.Hard else 0 }}">
+                                {{ stats.stats.hardSolved or 0 }}/{{ stats.stats.totalQuestions.Hard or 0 }}
                             </div>
                         </div>
                     </div>
@@ -277,7 +277,34 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
     <script>
         // Chart configuration and initialization
-        const analysisData = JSON.parse('{{ analysis | tojson | safe }}');
+        let analysisData, statsData;
+        
+        // Log raw data for debugging
+        console.log('Raw analysis:', '{{ analysis | tojson | safe }}');
+        console.log('Raw stats:', '{{ stats | tojson | safe }}');
+        
+        try {
+            // Parse data
+            analysisData = JSON.parse('{{ analysis | tojson | safe }}');
+            statsData = JSON.parse('{{ stats | tojson | safe }}');
+            
+            // Log parsed data
+            console.log('Parsed analysis data:', analysisData);
+            console.log('Parsed stats data:', statsData);
+            
+            if (!analysisData || !statsData) {
+                throw new Error('Missing data');
+            }
+        } catch (error) {
+            console.error('Error parsing data:', error);
+            // Set defaults to prevent undefined errors
+            analysisData = {
+                detailed_analysis: { skill_assessment: { detailed_analysis: {} } },
+                recommendations: {},
+                summary: {}
+            };
+            statsData = { stats: {} };
+        }
         
         // Chart.js Global Configuration
         Chart.defaults.color = '#CBD5E1';
@@ -313,9 +340,9 @@
                 }
             };
 
-            // Initialize Charts
             try {
                 // Show/hide no-data messages based on data availability
+                console.log('Checking data availability');
                 if (!analysisData?.detailed_analysis?.skill_assessment?.detailed_analysis?.skill_progression?.length) {
                     showNoDataMessage('skillTimelineChart');
                 }
@@ -377,10 +404,11 @@
                     });
                 }
 
-                // Initialize other charts
-                const practiceStrategy = analysisData.recommendations?.practice_strategy;
+                // Initialize other charts with defensive checks
+                const practiceStrategy = analysisData?.recommendations?.practice_strategy || {};
+                console.log('Practice strategy:', practiceStrategy);
                 
-                if (practiceStrategy?.difficulty_distribution) {
+                if (practiceStrategy?.difficulty_distribution && Object.keys(practiceStrategy.difficulty_distribution).length > 0) {
                     const diffCtx = document.getElementById('difficultyChart').getContext('2d');
                     new Chart(diffCtx, {
                         type: 'doughnut',
@@ -444,9 +472,11 @@
                     });
                 }
 
-                // Initialize Insights Dashboard Charts
-                const skillData = analysisData.detailed_analysis?.skill_assessment?.detailed_analysis?.skill_progression || [];
-                if (skillData.length > 0) {
+                // Initialize Insights Dashboard Charts with defensive checks
+                const skillData = analysisData?.detailed_analysis?.skill_assessment?.detailed_analysis?.skill_progression || [];
+                console.log('Skill progression data:', skillData);
+
+                if (skillData && skillData.length > 0) {
                     const skillCtx = document.getElementById('skillTimelineChart').getContext('2d');
                     new Chart(skillCtx, {
                         type: 'line',

@@ -408,28 +408,28 @@ class SkillAnalyzer:
         if total_problems == 0:
             return patterns
     
-        def _calculate_learning_velocity(self) -> Dict[str, int]:
-            """Calculate learning velocity (problems solved over time)"""
-            submissions = self.matched_user.get("recentSubmissionList", [])
-            if not submissions:
-                return {}
-    
-            # Group accepted submissions by date
-            daily_solved = {}
-            for sub in submissions:
-                if sub.get("statusDisplay") == "Accepted":
-                    date = datetime.fromtimestamp(sub.get("timestamp", 0)).strftime("%Y-%m-%d")
-                    if date not in daily_solved:
-                        daily_solved[date] = set()  # Use set to avoid counting same problem twice
-                    daily_solved[date].add(sub.get("problemId"))
-    
-            # Convert to daily counts and get last 7 days
-            velocity_data = {}
-            dates = sorted(daily_solved.keys())[-7:]  # Last 7 days
-            for date in dates:
-                velocity_data[date] = len(daily_solved[date])
-    
-            return velocity_data
+    def _calculate_learning_velocity(self) -> Dict[str, int]:
+        """Calculate learning velocity (problems solved over time)"""
+        submissions = self.matched_user.get("recentSubmissionList", [])
+        if not submissions:
+            return {}
+
+        # Group accepted submissions by date
+        daily_solved = {}
+        for sub in submissions:
+            if sub.get("statusDisplay") == "Accepted":
+                date = datetime.fromtimestamp(sub.get("timestamp", 0)).strftime("%Y-%m-%d")
+                if date not in daily_solved:
+                    daily_solved[date] = set()  # Use set to avoid counting same problem twice
+                daily_solved[date].add(sub.get("problemId"))
+
+        # Convert to daily counts and get last 7 days
+        velocity_data = {}
+        dates = sorted(daily_solved.keys())[-7:]  # Last 7 days
+        for date in dates:
+            velocity_data[date] = len(daily_solved[date])
+
+        return velocity_data
 
         # Analyze patterns for each problem
         for attempts in problem_attempts.values():
