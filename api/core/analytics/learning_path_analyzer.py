@@ -267,7 +267,8 @@ class LearningPathAnalyzer:
         daily_target: int
     ) -> List[Dict[str, Any]]:
         """Generate weekly focus areas"""
-        weekly_plan = []
+        # Declare weekly_plan with the correct type annotation
+        weekly_plan: List[str] = []
         critical_areas = skill_gaps["critical_areas"]
         improvement_areas = skill_gaps["improvement_areas"]
 

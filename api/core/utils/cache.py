@@ -13,11 +13,11 @@ class CacheEntry:
 class InMemoryCache:
     """Thread-safe in-memory cache with TTL support."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._cache: Dict[str, CacheEntry] = {}
-        self._lock = Lock()
+        self._lock: Lock = Lock()
         # Default TTLs for different types of data
-        self._ttls = {
+        self._ttls: Dict[str, int] = {
             'profile': 3600,     # 1 hour
             'contests': 1800,    # 30 minutes
             'submissions': 300,  # 5 minutes
@@ -31,7 +31,7 @@ class InMemoryCache:
             if key not in self._cache:
                 return None
 
-            entry = self._cache[key]
+            entry: CacheEntry = self._cache[key]
             if datetime.now() > entry.expiry:
                 del self._cache[key]
                 return None
@@ -40,7 +40,7 @@ class InMemoryCache:
 
     def set(self, key: str, value: Any, data_type: str = 'default') -> None:
         """Set value in cache with TTL based on data type."""
-        ttl = self._ttls.get(data_type, self._ttls['default'])
+        ttl: int = self._ttls.get(data_type, self._ttls['default'])
         with self._lock:
             self._cache[key] = CacheEntry(
                 data=value,
@@ -55,8 +55,8 @@ class InMemoryCache:
     def cleanup(self) -> int:
         """Remove all expired entries and return count of removed items."""
         with self._lock:
-            now = datetime.now()
-            expired = [k for k, v in self._cache.items() if now > v.expiry]
+            now: datetime = datetime.now()
+            expired: list[str] = [k for k, v in self._cache.items() if now > v.expiry]
             for k in expired:
                 del self._cache[k]
             return len(expired)
@@ -75,9 +75,9 @@ class InMemoryCache:
     def get_stats(self) -> Dict[str, Any]:
         """Get cache statistics."""
         with self._lock:
-            total_entries = len(self._cache)
-            now = datetime.now()
-            expired = sum(1 for v in self._cache.values() if now > v.expiry)
+            total_entries: int = len(self._cache)
+            now: datetime = datetime.now()
+            expired: int = sum(1 for v in self._cache.values() if now > v.expiry)
             return {
                 'total_entries': total_entries,
                 'expired_entries': expired,
