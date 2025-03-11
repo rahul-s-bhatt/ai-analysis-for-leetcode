@@ -2,6 +2,7 @@ from typing import Dict, Any, List
 from datetime import datetime
 import logging
 from .code_quality_analyzer import CodeQualityAnalyzer
+from ..ml.skill_assessment_model import SkillAssessmentModel
 
 logger = logging.getLogger(__name__)
 
@@ -13,23 +14,89 @@ class SkillAnalyzer:
         self.contest_history = user_data.get("userContestRankingHistory", [])
         self.tag_counts = self.matched_user.get("tagProblemCounts", {})
         self.code_quality_analyzer = CodeQualityAnalyzer(user_data)
+        self.skill_model = SkillAssessmentModel()
 
     def analyze_skill_level(self) -> Dict[str, Any]:
-        """Analyze overall skill level based on multiple factors"""
-        contest_performance = self._analyze_contest_performance()
-        problem_mastery = self._analyze_problem_mastery()
-        relative_standing = self._analyze_relative_standing()
-
-        return {
-            "overall_rating": self._calculate_overall_rating(
-                contest_performance,
-                problem_mastery,
-                relative_standing
-            ),
-            "contest_performance": contest_performance,
-            "problem_mastery": problem_mastery,
-            "relative_standing": relative_standing
-        }
+        """Analyze overall skill level using ML model and multiple factors"""
+        try:
+            logger.info("Starting ML-based skill analysis")
+            
+            # Get basic performance metrics
+            contest_performance = self._analyze_contest_performance()
+            problem_mastery = self._analyze_problem_mastery()
+            relative_standing = self._analyze_relative_standing()
+            
+            # Use ML model for comprehensive skill assessment
+            ml_assessment = self.skill_model.predict_skill_level(self.user_data)
+            logger.debug(f"ML model assessment: {ml_assessment}")
+            
+            if ml_assessment["confidence_metrics"]["data_confidence"] > 0.6:
+                logger.info("Using ML model predictions for skill assessment")
+                overall_rating = {
+                    "score": ml_assessment["overall_score"],
+                    "level": ml_assessment["skill_level"],
+                    "component_scores": ml_assessment["component_scores"],
+                    "confidence_metrics": ml_assessment["confidence_metrics"]
+                }
+            else:
+                logger.info("Using traditional assessment due to low ML confidence")
+                overall_rating = self._calculate_overall_rating(
+                    contest_performance,
+                    problem_mastery,
+                    relative_standing
+                )
+                
+            return {
+                "overall_rating": overall_rating,
+                "contest_performance": contest_performance,
+                "problem_mastery": problem_mastery,
+                "relative_standing": relative_standing,
+                "ml_insights": {
+                    "learning_rate": ml_assessment["component_scores"]["learning_rate"],
+                    "approach_diversity": ml_assessment["component_scores"]["approach_diversity"],
+                    "topic_coverage": ml_assessment["component_scores"]["topic_coverage"]
+                }
+            }
+            
+        except Exception as e:
+            logger.error(f"Error in skill analysis: {str(e)}", exc_info=True)
+            return self._fallback_skill_analysis()
+            
+    def _fallback_skill_analysis(self) -> Dict[str, Any]:
+        """Provide basic skill analysis when ML assessment fails"""
+        try:
+            contest_performance = self._analyze_contest_performance()
+            problem_mastery = self._analyze_problem_mastery()
+            relative_standing = self._analyze_relative_standing()
+            
+            return {
+                "overall_rating": self._calculate_overall_rating(
+                    contest_performance,
+                    problem_mastery,
+                    relative_standing
+                ),
+                "contest_performance": contest_performance,
+                "problem_mastery": problem_mastery,
+                "relative_standing": relative_standing,
+                "ml_insights": {
+                    "learning_rate": 0,
+                    "approach_diversity": 0,
+                    "topic_coverage": 0
+                }
+            }
+        except Exception as e:
+            logger.error(f"Error in fallback analysis: {str(e)}", exc_info=True)
+            return {
+                "overall_rating": {
+                    "score": 0,
+                    "level": "Unknown",
+                    "component_scores": {}
+                },
+                "contest_performance": {},
+                "problem_mastery": {},
+                "relative_standing": {},
+                "ml_insights": {}
+            }
 
     def _analyze_contest_performance(self) -> Dict[str, Any]:
         """Analyze user's performance in contests"""

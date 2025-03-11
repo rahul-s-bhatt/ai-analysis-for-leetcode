@@ -1,6 +1,10 @@
 from typing import Dict, Any, List
 from datetime import datetime, timedelta
 import json
+import logging
+from ..ml.learning_path_optimizer import LearningPathOptimizer
+
+logger = logging.getLogger(__name__)
 
 class LearningPathAnalyzer:
     def __init__(self, user_data: Dict[str, Any]):
@@ -8,13 +12,157 @@ class LearningPathAnalyzer:
         self.matched_user = user_data.get("matchedUser", {})
         self.tag_counts = self.matched_user.get("tagProblemCounts", {})
         self.submit_stats = self.matched_user.get("submitStats", {})
+        self.path_optimizer = LearningPathOptimizer()
 
     def generate_learning_path(self) -> Dict[str, Any]:
-        """Generate a personalized learning path based on user's current level"""
-        current_level = self._assess_current_level()
-        skill_gaps = self._identify_skill_gaps()
-        learning_velocity = self._calculate_learning_velocity()
+        """Generate a personalized learning path using ML optimization"""
+        try:
+            logger.info("Generating ML-optimized learning path")
+            
+            # Get basic assessments
+            current_level = self._assess_current_level()
+            skill_gaps = self._identify_skill_gaps()
+            learning_velocity = self._calculate_learning_velocity()
 
+            # Use ML optimizer for path generation
+            target_areas = [gap["topic"] for gap in skill_gaps["critical_areas"]]
+            target_areas.extend(gap["topic"] for gap in skill_gaps["improvement_areas"])
+            
+            optimized_path = self.path_optimizer.generate_learning_path(
+                self.user_data,
+                current_level,
+                target_areas
+            )
+            
+            if optimized_path.get("adaptivity_metrics", {}).get("skill_alignment", 0) > 0.6:
+                logger.info("Using ML-optimized learning path")
+                recommended_path = {
+                    "daily_target": optimized_path["daily_schedule"][0]["recommended_problems"]
+                                  if optimized_path.get("daily_schedule") else 3,
+                    "weekly_focus": optimized_path.get("weekly_plan", []),
+                    "preparation_strategy": {
+                        "focus": "ML-Optimized",
+                        "approach": "Personalized based on your learning patterns",
+                        "practice_distribution": self._generate_practice_distribution(
+                            current_level["overall_level"],
+                            optimized_path
+                        )
+                    }
+                }
+                timeline = {
+                    "estimated_completion_weeks": optimized_path["estimated_completion_time"]["weeks"],
+                    "milestones": self._generate_milestones(optimized_path["estimated_completion_time"]["weeks"]),
+                    "critical_path": self._generate_optimized_critical_path(
+                        skill_gaps["critical_areas"],
+                        optimized_path
+                    )
+                }
+            else:
+                logger.info("Falling back to heuristic path generation")
+                recommended_path = self._create_study_plan(
+                    current_level,
+                    skill_gaps,
+                    learning_velocity
+                )
+                timeline = self._generate_timeline(
+                    current_level,
+                    skill_gaps,
+                    learning_velocity
+                )
+
+            return {
+                "current_status": current_level,
+                "skill_gaps": skill_gaps,
+                "recommended_path": recommended_path,
+                "estimated_timeline": timeline,
+                "learning_insights": {
+                    "peak_hours": optimized_path.get("daily_schedule", []),
+                    "learning_patterns": self.path_optimizer.analyze_learning_patterns(self.user_data),
+                    "adaptivity_metrics": optimized_path.get("adaptivity_metrics", {})
+                }
+            }
+
+        except Exception as e:
+            logger.error(f"Error generating learning path: {str(e)}", exc_info=True)
+            return self._fallback_learning_path(
+                current_level=self._assess_current_level(),
+                skill_gaps=self._identify_skill_gaps(),
+                learning_velocity=self._calculate_learning_velocity()
+            )
+
+    def _generate_practice_distribution(
+        self,
+        overall_level: str,
+        optimized_path: Dict[str, Any]
+    ) -> Dict[str, int]:
+        """Generate practice distribution based on ML insights"""
+        try:
+            if "weekly_plan" in optimized_path:
+                # Calculate distribution from ML recommendations
+                total_problems = sum(week.get("problems_per_day", 0) * 7
+                                  for week in optimized_path["weekly_plan"])
+                if total_problems == 0:
+                    raise ValueError("No problems found in weekly plan")
+                    
+                difficulty_counts = {"Easy": 0, "Medium": 0, "Hard": 0}
+                for week in optimized_path["weekly_plan"]:
+                    diff = week.get("difficulty", "Medium")
+                    count = week.get("problems_per_day", 0) * 7
+                    if "-" in diff:  # Handle ranges like "Medium-Hard"
+                        parts = diff.split("-")
+                        difficulty_counts[parts[0].strip()] += count * 0.5
+                        difficulty_counts[parts[1].strip()] += count * 0.5
+                    else:
+                        difficulty_counts[diff] += count
+                
+                return {
+                    diff: round((count / total_problems) * 100)
+                    for diff, count in difficulty_counts.items()
+                }
+            else:
+                raise ValueError("No weekly plan in optimized path")
+                
+        except Exception as e:
+            logger.error(f"Error generating practice distribution: {str(e)}")
+            # Fall back to default distribution
+            return self._generate_preparation_strategy(overall_level)["practice_distribution"]
+
+    def _generate_optimized_critical_path(
+        self,
+        critical_areas: List[Dict[str, Any]],
+        optimized_path: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
+        """Generate critical path using ML optimization insights"""
+        try:
+            prerequisite_map = optimized_path.get("prerequisite_map", {})
+            critical_path = []
+            
+            for idx, area in enumerate(critical_areas):
+                topic = area["topic"]
+                prerequisites = prerequisite_map.get(topic, [])
+                
+                step = {
+                    "step": idx + 1,
+                    "topic": topic,
+                    "min_problems": self._calculate_min_problems(topic, optimized_path),
+                    "estimated_days": self._estimate_topic_days(topic, optimized_path),
+                    "prerequisites": prerequisites
+                }
+                critical_path.append(step)
+            
+            return critical_path
+            
+        except Exception as e:
+            logger.error(f"Error generating optimized critical path: {str(e)}")
+            return self._generate_critical_path(critical_areas)
+
+    def _fallback_learning_path(
+        self,
+        current_level: Dict[str, Any],
+        skill_gaps: Dict[str, Any],
+        learning_velocity: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Generate fallback learning path when ML optimization fails"""
         return {
             "current_status": current_level,
             "skill_gaps": skill_gaps,
@@ -27,8 +175,54 @@ class LearningPathAnalyzer:
                 current_level,
                 skill_gaps,
                 learning_velocity
-            )
+            ),
+            "learning_insights": {
+                "peak_hours": [],
+                "learning_patterns": {},
+                "adaptivity_metrics": {
+                    "skill_alignment": 0,
+                    "preference_matching": 0
+                }
+            }
         }
+
+    def _calculate_min_problems(
+        self,
+        topic: str,
+        optimized_path: Dict[str, Any]
+    ) -> int:
+        """Calculate minimum problems needed for a topic based on ML insights"""
+        try:
+            for week in optimized_path.get("weekly_plan", []):
+                if week["focus_topic"] == topic:
+                    return week["problems_per_day"] * 7
+            return 10  # Default fallback
+        except Exception:
+            return 10
+
+    def _estimate_topic_days(
+        self,
+        topic: str,
+        optimized_path: Dict[str, Any]
+    ) -> int:
+        """Estimate days needed for a topic based on ML insights"""
+        try:
+            learning_patterns = self.path_optimizer.analyze_learning_patterns(self.user_data)
+            base_days = 7
+            
+            if learning_patterns.get("learning_speed") == "fast":
+                base_days = 5
+            elif learning_patterns.get("learning_speed") == "steady":
+                base_days = 10
+                
+            # Adjust based on topic complexity in prerequisite map
+            prereq_map = optimized_path.get("prerequisite_map", {})
+            if topic in prereq_map:
+                base_days += len(prereq_map[topic]) * 2
+                
+            return base_days
+        except Exception:
+            return 7  # Default fallback
 
     def _assess_current_level(self) -> Dict[str, Any]:
         """Assess user's current skill level"""
