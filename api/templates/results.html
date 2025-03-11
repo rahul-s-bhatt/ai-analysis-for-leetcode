@@ -49,7 +49,7 @@
                                         <div class="progress-bar" role="progressbar"
                                              aria-valuenow="{{ analysis.summary.overall_score }}"
                                              aria-valuemin="0" aria-valuemax="100"
-                                             style="width: {{ analysis.summary.overall_score }}%">
+                                             class="width-{{ analysis.summary.overall_score }}">
                                             {{ analysis.summary.overall_score }}%
                                         </div>
                                         {% else %}
@@ -181,7 +181,7 @@
                         <h5 class="mb-2">Easy</h5>
                         <div class="progress">
                             <div class="progress-bar bg-success" role="progressbar"
-                                 data-width="{{ (stats.stats.easySolved / stats.stats.totalQuestions.Easy * 100) | round if stats.stats.totalQuestions.Easy else 0 }}">
+                 class="width-{{ (stats.stats.easySolved / stats.stats.totalQuestions.Easy * 100) | round if stats.stats.totalQuestions.Easy else 0 }}">
                                 {{ stats.stats.easySolved or 0 }}/{{ stats.stats.totalQuestions.Easy or 0 }}
                             </div>
                         </div>
@@ -190,7 +190,7 @@
                         <h5 class="mb-2">Medium</h5>
                         <div class="progress">
                             <div class="progress-bar bg-warning" role="progressbar"
-                                 data-width="{{ (stats.stats.mediumSolved / stats.stats.totalQuestions.Medium * 100) | round if stats.stats.totalQuestions.Medium else 0 }}">
+                 class="width-{{ (stats.stats.mediumSolved / stats.stats.totalQuestions.Medium * 100) | round if stats.stats.totalQuestions.Medium else 0 }}">
                                 {{ stats.stats.mediumSolved or 0 }}/{{ stats.stats.totalQuestions.Medium or 0 }}
                             </div>
                         </div>
@@ -199,7 +199,7 @@
                         <h5 class="mb-2">Hard</h5>
                         <div class="progress">
                             <div class="progress-bar bg-danger" role="progressbar"
-                                 data-width="{{ (stats.stats.hardSolved / stats.stats.totalQuestions.Hard * 100) | round if stats.stats.totalQuestions.Hard else 0 }}">
+                 class="width-{{ (stats.stats.hardSolved / stats.stats.totalQuestions.Hard * 100) | round if stats.stats.totalQuestions.Hard else 0 }}">
                                 {{ stats.stats.hardSolved or 0 }}/{{ stats.stats.totalQuestions.Hard or 0 }}
                             </div>
                         </div>
@@ -224,7 +224,7 @@
                         <div class="glass-card p-4">
                             <h4>Skill Progression Timeline</h4>
                             <div id="skillTimelineChart" class="chart-container">
-                                <div class="text-center py-4 no-data-message" style="display: none;">
+                                <div class="text-center py-4 no-data-message">
                                     <p class="text-secondary">Not enough data to display skill progression.</p>
                                 </div>
                             </div>
@@ -244,7 +244,7 @@
                         <div class="glass-card p-4">
                             <h4>Problem-Solving Patterns</h4>
                             <div id="patternRadarChart" class="chart-container">
-                                <div class="text-center py-4 no-data-message" style="display: none;">
+                                <div class="text-center py-4 no-data-message">
                                     <p class="text-secondary">Problem-solving pattern data unavailable.</p>
                                 </div>
                             </div>
@@ -256,7 +256,7 @@
                         <div class="glass-card p-4">
                             <h4>Learning Velocity</h4>
                             <div id="velocityChart" class="chart-container">
-                                <div class="text-center py-4 no-data-message" style="display: none;">
+                                <div class="text-center py-4 no-data-message">
                                     <p class="text-secondary">Learning velocity data not yet available.</p>
                                 </div>
                             </div>
@@ -284,378 +284,10 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
     <script>
-        // Chart configuration and initialization
-        let analysisData, statsData;
-        
-        // Log raw data for debugging
-        console.log('Raw analysis:', '{{ analysis | tojson | safe }}');
-        console.log('Raw stats:', '{{ stats | tojson | safe }}');
-        
-        try {
-            // Parse data
-            analysisData = JSON.parse('{{ analysis | tojson | safe }}');
-            statsData = JSON.parse('{{ stats | tojson | safe }}');
-            
-            // Log parsed data
-            console.log('Parsed analysis data:', analysisData);
-            console.log('Parsed stats data:', statsData);
-            
-            if (!analysisData || !statsData) {
-                throw new Error('Missing data');
-            }
-        } catch (error) {
-            console.error('Error parsing data:', error);
-            // Set defaults to prevent undefined errors
-            analysisData = {
-                detailed_analysis: { skill_assessment: { detailed_analysis: {} } },
-                recommendations: {},
-                summary: {}
-            };
-            statsData = { stats: {} };
-        }
-        
-        // Chart.js Global Configuration
-        Chart.defaults.color = '#CBD5E1';
-        Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Progress Bar
-            const progressBar = document.getElementById('progress-bar');
-            window.addEventListener('scroll', () => {
-                const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-                const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-                const scrolled = (winScroll / height) * 100;
-                progressBar.style.width = scrolled + '%';
-            });
-
-            // Scroll to Top Button
-            const scrollTopBtn = document.getElementById('scroll-top');
-            scrollTopBtn.addEventListener('click', () => {
-                window.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
-                });
-            });
-
-            // Helper function to show/hide no-data message
-            const showNoDataMessage = (containerId) => {
-                const container = document.getElementById(containerId);
-                if (container) {
-                    const noDataMessage = container.querySelector('.no-data-message');
-                    if (noDataMessage) {
-                        noDataMessage.style.display = 'block';
-                    }
-                }
-            };
-
-            try {
-                // Show/hide no-data messages based on data availability
-                console.log('Checking data availability');
-                if (!analysisData?.detailed_analysis?.skill_assessment?.detailed_analysis?.skill_progression?.length) {
-                    showNoDataMessage('skillTimelineChart');
-                }
-                if (!Object.keys(analysisData?.detailed_analysis?.skill_assessment?.detailed_analysis?.topic_mastery || {}).length) {
-                    showNoDataMessage('topicMatrixChart');
-                }
-                if (!Object.keys(analysisData?.detailed_analysis?.skill_assessment?.detailed_analysis?.solving_patterns || {}).length) {
-                    showNoDataMessage('patternRadarChart');
-                }
-                if (!Object.keys(analysisData?.detailed_analysis?.skill_assessment?.detailed_analysis?.learning_velocity || {}).length) {
-                    showNoDataMessage('velocityChart');
-                }
-
-                // Weak Topics Chart
-                const weakTopics = analysisData.detailed_analysis?.skill_assessment?.detailed_analysis?.weak_topics;
-                if (weakTopics?.length > 0) {
-                    const weakTopicsCtx = document.getElementById('weakTopicsChart').getContext('2d');
-                    new Chart(weakTopicsCtx, {
-                        type: 'bar',
-                        data: {
-                            labels: weakTopics.map(topic => topic.name),
-                            datasets: [
-                                {
-                                    label: 'Solved Problems',
-                                    data: weakTopics.map(topic => topic.solved),
-                                    backgroundColor: 'rgba(16, 185, 129, 0.7)',
-                                    borderColor: 'rgba(16, 185, 129, 1)',
-                                    borderWidth: 2
-                                },
-                                {
-                                    label: 'Total Problems',
-                                    data: weakTopics.map(topic => topic.total),
-                                    backgroundColor: 'rgba(236, 72, 153, 0.7)',
-                                    borderColor: 'rgba(236, 72, 153, 1)',
-                                    borderWidth: 2
-                                }
-                            ]
-                        },
-                        options: {
-                            responsive: true,
-                            animation: {
-                                duration: 1000,
-                                easing: 'easeInOutQuart'
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    grid: {
-                                        color: 'rgba(255, 255, 255, 0.1)'
-                                    }
-                                },
-                                x: {
-                                    grid: {
-                                        display: false
-                                    }
-                                }
-                            }
-                        }
-                    });
-                }
-
-                // Initialize other charts with defensive checks
-                const practiceStrategy = analysisData?.recommendations?.practice_strategy || {};
-                console.log('Practice strategy:', practiceStrategy);
-                
-                if (practiceStrategy?.difficulty_distribution && Object.keys(practiceStrategy.difficulty_distribution).length > 0) {
-                    const diffCtx = document.getElementById('difficultyChart').getContext('2d');
-                    new Chart(diffCtx, {
-                        type: 'doughnut',
-                        data: {
-                            labels: Object.keys(practiceStrategy.difficulty_distribution),
-                            datasets: [{
-                                data: Object.values(practiceStrategy.difficulty_distribution),
-                                backgroundColor: [
-                                    'rgba(16, 185, 129, 0.7)',
-                                    'rgba(245, 158, 11, 0.7)',
-                                    'rgba(236, 72, 153, 0.7)'
-                                ],
-                                borderColor: [
-                                    '#10B981',
-                                    '#F59E0B',
-                                    '#EC4899'
-                                ],
-                                borderWidth: 2
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: {
-                                legend: {
-                                    position: 'right'
-                                }
-                            }
-                        }
-                    });
-                }
-
-                if (practiceStrategy?.time_allocation) {
-                    const timeCtx = document.getElementById('timeAllocationChart').getContext('2d');
-                    new Chart(timeCtx, {
-                        type: 'polarArea',
-                        data: {
-                            labels: Object.keys(practiceStrategy.time_allocation),
-                            datasets: [{
-                                data: Object.values(practiceStrategy.time_allocation),
-                                backgroundColor: [
-                                    'rgba(99, 102, 241, 0.7)',
-                                    'rgba(111, 66, 193, 0.7)',
-                                    'rgba(32, 201, 151, 0.7)'
-                                ],
-                                borderColor: [
-                                    '#6366F1',
-                                    '#6F42C1',
-                                    '#20C997'
-                                ],
-                                borderWidth: 2
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: {
-                                legend: {
-                                    position: 'right'
-                                }
-                            }
-                        }
-                    });
-                }
-
-                // Initialize Insights Dashboard Charts with defensive checks
-                const skillData = analysisData?.detailed_analysis?.skill_assessment?.detailed_analysis?.skill_progression || [];
-                console.log('Skill progression data:', skillData);
-
-                if (skillData && skillData.length > 0) {
-                    const skillCtx = document.getElementById('skillTimelineChart').getContext('2d');
-                    new Chart(skillCtx, {
-                        type: 'line',
-                        data: {
-                            labels: skillData.map(entry => entry.date),
-                            datasets: [{
-                                label: 'Skill Progress',
-                                data: skillData.map(entry => entry.score),
-                                borderColor: '#6366F1',
-                                backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                                tension: 0.4,
-                                fill: true
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: {
-                                legend: {
-                                    display: false
-                                },
-                                tooltip: {
-                                    backgroundColor: 'rgba(30, 41, 59, 0.9)',
-                                    titleColor: '#F8FAFC',
-                                    bodyColor: '#CBD5E1'
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    grid: {
-                                        color: 'rgba(255, 255, 255, 0.1)'
-                                    }
-                                },
-                                x: {
-                                    grid: {
-                                        display: false
-                                    }
-                                }
-                            }
-                        }
-                    });
-                }
-
-                const topicMastery = analysisData.detailed_analysis?.skill_assessment?.detailed_analysis?.topic_mastery || {};
-                if (Object.keys(topicMastery).length > 0) {
-                    const matrixCtx = document.getElementById('topicMatrixChart').getContext('2d');
-                    new Chart(matrixCtx, {
-                        type: 'radar',
-                        data: {
-                            labels: Object.keys(topicMastery),
-                            datasets: [{
-                                label: 'Topic Mastery',
-                                data: Object.values(topicMastery),
-                                backgroundColor: 'rgba(236, 72, 153, 0.2)',
-                                borderColor: '#EC4899',
-                                borderWidth: 2,
-                                pointBackgroundColor: '#EC4899'
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: {
-                                legend: {
-                                    display: false
-                                }
-                            },
-                            scales: {
-                                r: {
-                                    beginAtZero: true,
-                                    ticks: {
-                                        display: false
-                                    },
-                                    grid: {
-                                        color: 'rgba(255, 255, 255, 0.1)'
-                                    }
-                                }
-                            }
-                        }
-                    });
-                }
-
-                const patterns = analysisData.detailed_analysis?.skill_assessment?.detailed_analysis?.solving_patterns || {};
-                if (Object.keys(patterns).length > 0) {
-                    const patternCtx = document.getElementById('patternRadarChart').getContext('2d');
-                    new Chart(patternCtx, {
-                        type: 'polarArea',
-                        data: {
-                            labels: Object.keys(patterns),
-                            datasets: [{
-                                data: Object.values(patterns),
-                                backgroundColor: [
-                                    'rgba(99, 102, 241, 0.7)',
-                                    'rgba(236, 72, 153, 0.7)',
-                                    'rgba(16, 185, 129, 0.7)',
-                                    'rgba(245, 158, 11, 0.7)'
-                                ],
-                                borderWidth: 0
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: {
-                                legend: {
-                                    position: 'right'
-                                }
-                            }
-                        }
-                    });
-                }
-
-                const velocityData = analysisData.detailed_analysis?.skill_assessment?.detailed_analysis?.learning_velocity || {};
-                if (Object.keys(velocityData).length > 0) {
-                    const velocityCtx = document.getElementById('velocityChart').getContext('2d');
-                    new Chart(velocityCtx, {
-                        type: 'line',
-                        data: {
-                            labels: Object.keys(velocityData),
-                            datasets: [{
-                                label: 'Problems Solved',
-                                data: Object.values(velocityData),
-                                borderColor: '#10B981',
-                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                                tension: 0.4,
-                                fill: true
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: {
-                                legend: {
-                                    display: false
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    grid: {
-                                        color: 'rgba(255, 255, 255, 0.1)'
-                                    }
-                                },
-                                x: {
-                                    grid: {
-                                        display: false
-                                    }
-                                }
-                            }
-                        }
-                    });
-                }
-
-                // Add intersection observer for fade-in animations
-                const observer = new IntersectionObserver(
-                    (entries) => {
-                        entries.forEach(entry => {
-                            if (entry.isIntersecting) {
-                                entry.target.classList.add('fade-in');
-                                observer.unobserve(entry.target);
-                            }
-                        });
-                    },
-                    { threshold: 0.1 }
-                );
-
-                document.querySelectorAll('.glass-card').forEach(card => {
-                    observer.observe(card);
-                });
-
-            } catch (error) {
-                console.error('Error initializing charts:', error);
-            }
-        });
+        // Make data available to external JS
+        const analysisDataRaw = '{{ analysis | tojson | safe }}';
+        const statsDataRaw = '{{ stats | tojson | safe }}';
     </script>
+    <script src="{{ url_for('static', filename='js/results.js') }}"></script>
 </body>
 </html>
