@@ -137,6 +137,88 @@ h1, h2, h3, h4, h5, h6 {
     border-radius: 1rem;
 }
 
+/* Code Quality Insights Styles */
+.code-quality-section {
+    padding: 1rem 0;
+}
+
+.efficiency-metrics {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin: 1rem 0;
+}
+
+.metric {
+    flex: 1;
+    padding: 0.5rem;
+}
+
+.metric-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.metric-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.patterns-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.pattern-item {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
+
+.pattern-name {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.code-quality-section .progress {
+    height: 0.5rem;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.code-quality-section .progress-bar {
+    background: linear-gradient(90deg, var(--info), var(--primary));
+    transition: width 1s ease-in-out;
+}
+
+@media screen and (max-width: 768px) {
+    .efficiency-metrics {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .metric {
+        margin-bottom: 1rem;
+    }
+
+    .metric:last-child {
+        margin-bottom: 0;
+    }
+
+    .patterns-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 .no-data-message {
     position: absolute;
     top: 50%;

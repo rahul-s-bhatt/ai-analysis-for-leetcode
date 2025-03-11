@@ -60,6 +60,11 @@ class AnalyticsManager:
         learning_path: Dict[str, Any]
     ) -> Dict[str, Any]:
         """Compile individual analyses into a comprehensive report."""
+        # Get code quality analysis
+        code_quality = skill_analysis.get("code_quality_metrics", {})
+        if not code_quality:
+            logger.warning("Code quality metrics not found in skill analysis")
+            
         return {
             "summary": self._generate_summary(pattern_analysis, skill_analysis),
             "detailed_analysis": {
@@ -78,6 +83,7 @@ class AnalyticsManager:
                 skill_analysis
             ),
             "next_steps": self._generate_next_steps(learning_path),
+            "code_quality_metrics": code_quality,
             "analysis_timestamp": datetime.now().isoformat()
         }
 
@@ -372,6 +378,36 @@ class AnalyticsManager:
                         "pattern_recognition": 0
                     }
                 }
+            },
+            "code_quality_metrics": {
+                "complexity_analysis": {
+                    "patterns": {
+                        "time": {},
+                        "space": {}
+                    },
+                    "trend": {
+                        "trend": "Not available",
+                        "description": "Not enough data to analyze trends"
+                    },
+                    "recommendations": []
+                },
+                "optimization_patterns": {
+                    "identified_patterns": {
+                        "efficient_data_structures": {}
+                    },
+                    "optimization_score": 0,
+                    "recommendations": []
+                },
+                "solution_efficiency": {
+                    "metrics": {
+                        "runtime_percentile": 0,
+                        "memory_percentile": 0,
+                        "optimization_ratio": 0
+                    },
+                    "overall_efficiency": 0,
+                    "areas_for_improvement": []
+                },
+                "code_style": {}
             },
             "analysis_timestamp": timestamp
         }

@@ -74,8 +74,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!Object.keys(analysisData?.detailed_analysis?.skill_assessment?.detailed_analysis?.solving_patterns || {}).length) {
             showNoDataMessage('patternRadarChart');
         }
-        if (!Object.keys(analysisData?.detailed_analysis?.skill_assessment?.detailed_analysis?.learning_velocity || {}).length) {
+        if (!Object.Keys(analysisData?.detailed_analysis?.skill_assessment?.detailed_analysis?.learning_velocity || {}).length) {
             showNoDataMessage('velocityChart');
+        }
+        if (!analysisData?.code_quality_metrics?.complexity_metrics?.patterns) {
+            showNoDataMessage('complexityChart');
         }
 
         // Initialize all charts
@@ -373,5 +376,81 @@ function initializeCharts() {
                 }
             }
         });
+
+        // Initialize Complexity Distribution Chart
+        const complexityMetrics = analysisData.code_quality_metrics?.complexity_metrics;
+        if (complexityMetrics?.patterns?.time) {
+            const complexityCtx = document.getElementById('complexityChart').getContext('2d');
+            new Chart(complexityCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(complexityMetrics.patterns.time),
+                    datasets: [{
+                        data: Object.values(complexityMetrics.patterns.time),
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.7)',  // O(1)
+                            'rgba(59, 130, 246, 0.7)',  // O(log n)
+                            'rgba(99, 102, 241, 0.7)',  // O(n)
+                            'rgba(236, 72, 153, 0.7)',  // O(n log n)
+                            'rgba(245, 158, 11, 0.7)',  // O(n²)
+                            'rgba(239, 68, 68, 0.7)'    // O(2ⁿ)
+                        ],
+                        borderColor: [
+                            '#10B981',
+                            '#3B82F6',
+                            '#6366F1',
+                            '#EC4899',
+                            '#F59E0B',
+                            '#EF4444'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                font: {
+                                    family: "'Plus Jakarta Sans', sans-serif"
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    return `${label}: ${value} solutions`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Add trend indicator
+            const trendEl = document.createElement('div');
+            trendEl.className = 'trend-indicator mt-3 text-center';
+            trendEl.innerHTML = `
+                <span class="badge-custom ${complexityMetrics.trend.trend.toLowerCase()}">
+                    ${complexityMetrics.trend.trend}: ${complexityMetrics.trend.description}
+                </span>
+            `;
+            document.getElementById('complexityChart').parentNode.appendChild(trendEl);
+        }
+    }
+
+    // Helper function to create trend badge class
+    function getTrendClass(trend) {
+        switch(trend.toLowerCase()) {
+            case 'improving':
+                return 'success';
+            case 'declining':
+                return 'danger';
+            default:
+                return 'warning';
+        }
     }
 }

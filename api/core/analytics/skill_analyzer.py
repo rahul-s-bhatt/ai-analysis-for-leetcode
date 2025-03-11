@@ -1,5 +1,9 @@
 from typing import Dict, Any, List
 from datetime import datetime
+import logging
+from .code_quality_analyzer import CodeQualityAnalyzer
+
+logger = logging.getLogger(__name__)
 
 class SkillAnalyzer:
     def __init__(self, user_data: Dict[str, Any]):
@@ -8,6 +12,7 @@ class SkillAnalyzer:
         self.contest_data = user_data.get("userContestRanking", {})
         self.contest_history = user_data.get("userContestRankingHistory", [])
         self.tag_counts = self.matched_user.get("tagProblemCounts", {})
+        self.code_quality_analyzer = CodeQualityAnalyzer(user_data)
 
     def analyze_skill_level(self) -> Dict[str, Any]:
         """Analyze overall skill level based on multiple factors"""
@@ -219,24 +224,67 @@ class SkillAnalyzer:
         }
     
     def get_complete_skill_analysis(self) -> Dict[str, Any]:
-        """Get complete skill analysis report"""
-        skill_analysis = self.analyze_skill_level()
-        weak_topics = self.analyze_topic_performance()
-        
-        return {
-            "overall_rating": skill_analysis["overall_rating"],
-            "detailed_analysis": {
-                "contest_performance": skill_analysis["contest_performance"],
-                "problem_mastery": skill_analysis["problem_mastery"],
-                "relative_standing": skill_analysis["relative_standing"],
-                "weak_topics": weak_topics,
-                "skill_progression": self._generate_skill_progression(),
-                "topic_mastery": self._generate_topic_mastery_scores(),
-                "solving_patterns": self._analyze_solving_patterns(),
-                "learning_velocity": self._calculate_learning_velocity()
-            },
-            "recommendations": self._generate_skill_recommendations(skill_analysis)
-        }
+        """Get complete skill analysis report with code quality metrics"""
+        try:
+            skill_analysis = self.analyze_skill_level()
+            weak_topics = self.analyze_topic_performance()
+            
+            # Get code quality analysis
+            code_quality = self.code_quality_analyzer.analyze_code_quality()
+            if not code_quality:
+                raise ValueError("Code quality analysis returned empty results")
+                
+            # Calculate new overall rating incorporating code quality
+            updated_rating = self._calculate_overall_rating_with_quality(
+                skill_analysis["overall_rating"],
+                code_quality
+            )
+            
+            # Prepare code quality metrics
+            quality_metrics = {
+                "complexity_analysis": code_quality.get("complexity_metrics", {}),
+                "optimization_patterns": code_quality.get("optimization_patterns", {}),
+                "solution_efficiency": code_quality.get("solution_efficiency", {}),
+                "code_style": code_quality.get("code_style", {})
+            }
+            
+            return {
+                "overall_rating": updated_rating,
+                "detailed_analysis": {
+                    "contest_performance": skill_analysis["contest_performance"],
+                    "problem_mastery": skill_analysis["problem_mastery"],
+                    "relative_standing": skill_analysis["relative_standing"],
+                    "weak_topics": weak_topics,
+                    "skill_progression": self._generate_skill_progression(),
+                    "topic_mastery": self._generate_topic_mastery_scores(),
+                    "solving_patterns": self._analyze_solving_patterns(),
+                    "learning_velocity": self._calculate_learning_velocity()
+                },
+                "code_quality_metrics": quality_metrics,
+                "recommendations": self._generate_enhanced_recommendations(
+                    skill_analysis,
+                    code_quality
+                )
+            }
+        except Exception as e:
+            logger.error(f"Error in get_complete_skill_analysis: {str(e)}")
+            return {
+                "overall_rating": {"score": 0, "level": "Not Available"},
+                "detailed_analysis": {},
+                "code_quality_metrics": {
+                    "complexity_analysis": {},
+                    "optimization_patterns": {},
+                    "solution_efficiency": {
+                        "metrics": {
+                            "runtime_percentile": 0,
+                            "memory_percentile": 0,
+                            "optimization_ratio": 0
+                        }
+                    },
+                    "code_style": {}
+                },
+                "recommendations": []
+            }
     
     def analyze_topic_performance(self) -> List[Dict[str, Any]]:
         """Analyze performance across different topics/tags and identify weakest areas"""
@@ -430,6 +478,114 @@ class SkillAnalyzer:
             velocity_data[date] = len(daily_solved[date])
 
         return velocity_data
+
+    def _calculate_overall_rating_with_quality(
+        self,
+        base_rating: Dict[str, Any],
+        code_quality: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Calculate overall rating incorporating code quality metrics."""
+        try:
+            logger.info("Calculating overall rating with code quality metrics")
+            logger.debug(f"Base rating input: {base_rating}")
+            logger.debug(f"Code quality input: {code_quality}")
+
+            # Extract base score
+            base_score = base_rating.get("score", 0)
+            logger.debug(f"Extracted base score: {base_score}")
+            
+            # Calculate code quality score
+            quality_score = 0
+            if code_quality and isinstance(code_quality, dict):
+                efficiency = code_quality.get("solution_efficiency", {}).get("metrics", {})
+                logger.debug(f"Efficiency metrics found: {efficiency}")
+                
+                runtime_score = efficiency.get("runtime_percentile", 0) * 0.4
+                memory_score = efficiency.get("memory_percentile", 0) * 0.3
+                optimization_score = efficiency.get("optimization_ratio", 0) * 0.3
+                
+                quality_score = runtime_score + memory_score + optimization_score
+                logger.debug(f"Calculated quality scores - Runtime: {runtime_score}, Memory: {memory_score}, Optimization: {optimization_score}")
+            else:
+                logger.warning("Code quality data is missing or invalid")
+
+            # Combine scores with 70% weight on base score and 30% on code quality
+            final_score = (base_score * 0.7) + (quality_score * 0.3)
+            logger.debug(f"Combined final score: {final_score}")
+            
+            # Determine new level based on combined score
+            level = "Elite" if final_score > 90 else \
+                   "Advanced" if final_score > 70 else \
+                   "Intermediate" if final_score > 50 else \
+                   "Beginner"
+            logger.info(f"Determined skill level: {level} with final score: {final_score}")
+
+            result = {
+                "score": round(final_score, 2),
+                "level": level,
+                "component_scores": {
+                    **base_rating.get("component_scores", {}),
+                    "code_quality": round(quality_score, 2)
+                }
+            }
+            logger.debug(f"Final rating result: {result}")
+            return result
+
+        except Exception as e:
+            logger.error(f"Error in _calculate_overall_rating_with_quality: {str(e)}", exc_info=True)
+            return {
+                "score": base_rating.get("score", 0),
+                "level": base_rating.get("level", "Beginner"),
+                "component_scores": {
+                    **base_rating.get("component_scores", {}),
+                    "code_quality": 0
+                }
+            }
+
+    def _generate_enhanced_recommendations(
+        self,
+        skill_analysis: Dict[str, Any],
+        code_quality: Dict[str, Any]
+    ) -> List[Dict[str, str]]:
+        """Generate enhanced recommendations incorporating code quality analysis."""
+        recommendations = self._generate_skill_recommendations(skill_analysis)
+        
+        # Add code quality based recommendations
+        if code_quality:
+            # Complexity recommendations
+            complexity_metrics = code_quality.get("complexity_metrics", {})
+            if complexity_metrics:
+                trend = complexity_metrics.get("trend", {}).get("trend")
+                if trend == "Declining":
+                    recommendations.append({
+                        "type": "code_quality",
+                        "message": "Focus on optimizing solution complexity. Consider more efficient algorithms and data structures.",
+                        "priority": "high"
+                    })
+
+            # Optimization recommendations
+            optimization = code_quality.get("optimization_patterns", {})
+            if optimization:
+                score = optimization.get("optimization_score", 0)
+                if score < 50:
+                    recommendations.append({
+                        "type": "optimization",
+                        "message": "Practice implementing more optimized solutions. Pay attention to time and space complexity.",
+                        "priority": "medium"
+                    })
+
+            # Solution efficiency recommendations
+            efficiency = code_quality.get("solution_efficiency", {})
+            if efficiency:
+                improvements = efficiency.get("areas_for_improvement", [])
+                for improvement in improvements:
+                    recommendations.append({
+                        "type": "efficiency",
+                        "message": f"{improvement['area']}: {improvement['suggestion']}",
+                        "priority": "medium"
+                    })
+
+        return recommendations
 
         # Analyze patterns for each problem
         for attempts in problem_attempts.values():
