@@ -28,19 +28,110 @@ try {
     statsData = { stats: {} };
 }
 
+// ML Helper Functions
+function getMLConfidenceData(metricName) {
+    const mlMetrics = {
+        'Coding Style': {
+            confidence: analysisData.coding_personality?.problem_solving_style?.confidence_metrics?.pattern_strength * 100 || 0,
+            samples: analysisData.coding_personality?.problem_solving_style?.confidence_metrics?.sample_size || 0
+        },
+        'Skill Level': {
+            confidence: analysisData.code_quality_metrics?.solution_efficiency?.metrics?.optimization_ratio * 100 || 0,
+            samples: analysisData.detailed_analysis?.skill_assessment?.detailed_analysis?.total_submissions || 0
+        },
+        'Overall Score': {
+            confidence: analysisData.learning_insights?.learning_patterns?.consistency_score * 100 || 0,
+            samples: analysisData.detailed_analysis?.skill_assessment?.detailed_analysis?.assessed_problems?.length || 0
+        }
+    };
+    return mlMetrics[metricName] || { confidence: 0, samples: 0 };
+}
+
+function enhanceChartWithML(chart, type) {
+    const mlInsights = analysisData.learning_insights?.ml_predictions?.[type] || {};
+    if (Object.keys(mlInsights).length > 0) {
+        chart.options.plugins.annotation = {
+            annotations: {
+                mlPrediction: {
+                    type: 'line',
+                    borderColor: 'rgba(236, 72, 153, 0.5)',
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    label: {
+                        content: 'ML Prediction',
+                        enabled: true,
+                        position: 'end'
+                    },
+                    scaleID: 'y',
+                    value: mlInsights.predicted_value || 0
+                }
+            }
+        };
+        chart.update();
+    }
+}
+
 // Chart.js Global Configuration
 Chart.defaults.color = '#CBD5E1';
 Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(0, 0, 0, 0.95)';
+Chart.defaults.plugins.tooltip.titleFont = { family: "'Plus Jakarta Sans', sans-serif" };
+Chart.defaults.plugins.tooltip.bodyFont = { family: "'Plus Jakarta Sans', sans-serif" };
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Progress Bar
-    const progressBar = document.getElementById('progress-bar');
-    window.addEventListener('scroll', () => {
-        const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-        const scrolled = (winScroll / height) * 100;
-        progressBar.style.width = scrolled + '%';
-    });
+    // Initialize Interactive Components
+    const initializeInteractiveComponents = () => {
+        // Progress Bar
+        const progressBar = document.getElementById('progress-bar');
+        window.addEventListener('scroll', () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            progressBar.style.width = scrolled + '%';
+        });
+
+        // Initialize Tooltips
+        tippy('[data-tippy-content]', {
+            theme: 'ml-insight',
+            placement: 'top',
+            animation: 'shift-away',
+            duration: [200, 150],
+            onShow(instance) {
+                // Add ML confidence data for tooltips
+                if (instance.reference.classList.contains('stat-card')) {
+                    const metricName = instance.reference.querySelector('h5').textContent;
+                    const confidenceData = getMLConfidenceData(metricName);
+                    instance.setContent(`
+                        ${instance.props.content}
+                        <div class="metric-details">
+                            <div>Confidence: ${confidenceData.confidence}%</div>
+                            <div>Based on ${confidenceData.samples} samples</div>
+                        </div>
+                    `);
+                }
+            }
+        });
+
+        // Add intersection observers for animations
+        const observerOptions = {
+            threshold: 0.2,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const animateOnScroll = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in');
+                    animateOnScroll.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.chart-container, .stat-card, .glass-card').forEach(el => {
+            animateOnScroll.observe(el);
+        });
+    };
+
 
     // Scroll to Top Button
     const scrollTopBtn = document.getElementById('scroll-top');
@@ -81,8 +172,70 @@ document.addEventListener('DOMContentLoaded', function() {
             showNoDataMessage('complexityChart');
         }
 
+        // Initialize ML charts and visualizations
+        const initializeMLCharts = () => {
+            const weakTopicsChart = new Chart(document.getElementById('weakTopicsChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: analysisData.detailed_analysis?.skill_assessment?.detailed_analysis?.weak_topics?.map(t => t.name) || [],
+                    datasets: [
+                        {
+                            label: 'Solved Problems',
+                            data: analysisData.detailed_analysis?.skill_assessment?.detailed_analysis?.weak_topics?.map(t => t.solved) || [],
+                            backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                            borderColor: 'rgba(16, 185, 129, 1)',
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'ML Predicted Difficulty',
+                            data: analysisData.detailed_analysis?.skill_assessment?.ml_insights?.topic_difficulty?.values || [],
+                            type: 'line',
+                            borderColor: 'rgba(99, 102, 241, 0.8)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                afterBody: function(context) {
+                                    const idx = context[0].dataIndex;
+                                    const topic = analysisData.detailed_analysis?.skill_assessment?.detailed_analysis?.weak_topics?.[idx];
+                                    if (topic) {
+                                        const mlConfidence = analysisData.detailed_analysis?.skill_assessment?.ml_insights?.confidence_scores?.[topic.name];
+                                        return mlConfidence ? `ML Confidence: ${(mlConfidence * 100).toFixed(1)}%` : '';
+                                    }
+                                    return '';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+
+            // Add ML insights to existing charts
+            enhanceChartWithML(skillTimelineChart, 'skill_progression');
+            enhanceChartWithML(topicMatrixChart, 'topic_mastery');
+            enhanceChartWithML(patternRadarChart, 'solving_patterns');
+        };
+
         // Initialize all charts
         initializeCharts();
+        initializeMLCharts();
 
         // Add intersection observer for fade-in animations
         const observer = new IntersectionObserver(
@@ -430,15 +583,185 @@ function initializeCharts() {
                 }
             });
 
-            // Add trend indicator
-            const trendEl = document.createElement('div');
-            trendEl.className = 'trend-indicator mt-3 text-center';
-            trendEl.innerHTML = `
-                <span class="badge-custom ${complexityMetrics.trend.trend.toLowerCase()}">
-                    ${complexityMetrics.trend.trend}: ${complexityMetrics.trend.description}
-                </span>
+            // Create container for ML visualizations
+            const mlVisualsContainer = document.createElement('div');
+            mlVisualsContainer.className = 'ml-visualizations';
+            
+            // Add pattern distribution chart
+            const patternChartContainer = document.createElement('div');
+            patternChartContainer.className = 'pattern-chart-container';
+            const patternCanvas = document.createElement('canvas');
+            patternCanvas.id = 'mlPatternChart';
+            patternChartContainer.appendChild(patternCanvas);
+            mlVisualsContainer.appendChild(patternChartContainer);
+            
+            // Add learning progress chart
+            const progressChartContainer = document.createElement('div');
+            progressChartContainer.className = 'progress-chart-container';
+            const progressCanvas = document.createElement('canvas');
+            progressCanvas.id = 'mlProgressChart';
+            progressChartContainer.appendChild(progressCanvas);
+            mlVisualsContainer.appendChild(progressChartContainer);
+            
+            // Add ML insights panel
+            const mlInsightsEl = document.createElement('div');
+            mlInsightsEl.className = 'ml-insights-panel mt-4';
+            
+            // Add confidence scores visualization
+            const confidenceScores = analysisData.code_quality_metrics?.solution_efficiency?.metrics || {};
+            
+            // Initialize ML charts
+            const mlPatterns = analysisData.coding_personality?.problem_solving_style?.pattern_distribution;
+            if (mlPatterns) {
+                new Chart(patternCanvas.getContext('2d'), {
+                    type: 'radar',
+                    data: {
+                        labels: Object.keys(mlPatterns).map(key => key.charAt(0).toUpperCase() + key.slice(1)),
+                        datasets: [{
+                            label: 'Pattern Distribution',
+                            data: Object.values(mlPatterns),
+                            backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                            borderColor: 'rgba(99, 102, 241, 1)',
+                            borderWidth: 2,
+                            pointBackgroundColor: 'rgba(99, 102, 241, 1)',
+                            pointRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: { stepSize: 20 },
+                                grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                                pointLabels: {
+                                    font: {
+                                        family: "'Plus Jakarta Sans', sans-serif",
+                                        size: 12
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `Confidence: ${context.raw}%`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Initialize learning progress chart
+            const learningData = analysisData.detailed_analysis?.skill_assessment?.ml_insights?.learning_rate || {};
+            if (Object.keys(learningData).length > 0) {
+                new Chart(progressCanvas.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: Object.keys(learningData),
+                        datasets: [{
+                            label: 'Learning Rate',
+                            data: Object.values(learningData),
+                            borderColor: '#EC4899',
+                            backgroundColor: 'rgba(236, 72, 153, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                            },
+                            x: { grid: { display: false } }
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                callbacks: {
+                                    label: function(context) {
+                                        return `Learning Rate: ${context.raw.toFixed(2)}`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            const confidenceHtml = `
+                <div class="confidence-metrics">
+                    <h5>ML Model Confidence</h5>
+                    <div class="confidence-grid">
+                        <div class="confidence-item">
+                            <div class="confidence-bar" style="--confidence: ${confidenceScores.runtime_percentile || 0}%">
+                                <span class="confidence-label">Runtime Analysis</span>
+                                <span class="confidence-value">${confidenceScores.runtime_percentile || 0}%</span>
+                            </div>
+                        </div>
+                        <div class="confidence-item">
+                            <div class="confidence-bar" style="--confidence: ${confidenceScores.memory_percentile || 0}%">
+                                <span class="confidence-label">Memory Usage</span>
+                                <span class="confidence-value">${confidenceScores.memory_percentile || 0}%</span>
+                            </div>
+                        </div>
+                        <div class="confidence-item">
+                            <div class="confidence-bar" style="--confidence: ${confidenceScores.optimization_ratio || 0}%">
+                                <span class="confidence-label">Code Optimization</span>
+                                <span class="confidence-value">${confidenceScores.optimization_ratio || 0}%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             `;
-            document.getElementById('complexityChart').parentNode.appendChild(trendEl);
+    
+            // Add trend analysis with interactive tooltip
+            const trend = complexityMetrics?.trend || {};
+            const trendHtml = `
+                <div class="trend-analysis mt-4">
+                    <h5>Complexity Trend Analysis</h5>
+                    <div class="trend-indicator" data-tippy-content="Based on your last ${complexityMetrics?.patterns?.time_window || '30'} submissions">
+                        <span class="badge-custom ${trend.trend?.toLowerCase()} pulse">
+                            ${trend.trend || 'No Data'}: ${trend.description || 'Insufficient data for trend analysis'}
+                        </span>
+                    </div>
+                </div>
+            `;
+    
+            mlInsightsEl.innerHTML = confidenceHtml + trendHtml;
+            document.getElementById('complexityChart').parentNode.appendChild(mlInsightsEl);
+    
+            // Initialize tooltips for ML insights
+            tippy('[data-tippy-content]', {
+                theme: 'dark',
+                animation: 'shift-away',
+                interactive: true
+            });
+    
+            // Add interactive events for confidence bars
+            document.querySelectorAll('.confidence-bar').forEach(bar => {
+                bar.addEventListener('mouseenter', (e) => {
+                    const value = e.currentTarget.style.getPropertyValue('--confidence');
+                    const label = e.currentTarget.querySelector('.confidence-label').textContent;
+                    
+                    tippy(e.currentTarget, {
+                        content: `${label}: ${value}`,
+                        theme: 'dark',
+                        animation: 'shift-away',
+                        placement: 'right'
+                    });
+                });
+            });
         }
     }
 

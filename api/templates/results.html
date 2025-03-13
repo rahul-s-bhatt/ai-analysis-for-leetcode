@@ -11,57 +11,82 @@
     <!-- Core CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tippy.js@6.3.7/dist/tippy.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tippy.js@6.3.7/themes/light.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/results.css') }}" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <div id="progress-bar"></div>
+    <!-- Interactive Progress Bar -->
+    <div class="progress-container">
+        <div id="progress-bar"></div>
+        <div class="progress-label">Scroll Progress</div>
+    </div>
 
     <div class="container">
-        <!-- Hero Section -->
-        <section class="hero-section d-flex align-items-center">
+        <!-- Enhanced Hero Section -->
+        <section id="hero" class="hero-section">
             <div class="container">
-                <div class="row align-items-center">
-                    <div class="col-lg-8 mx-auto text-center">
-                        <div class="profile-pic-container">
-                            <img
-                                src="{{ stats.profile.userAvatar if stats.profile.userAvatar else 'https://leetcode.com/static/images/default_avatar.png' }}"
-                                alt="{{ username }}'s profile picture"
-                                class="profile-pic"
-                                onerror="this.src='https://leetcode.com/static/images/default_avatar.png'; this.onerror=null;"
-                            >
-                        </div>
-                        <h1 class="display-4 mb-4 fw-bold typing-text">Welcome, {{ username }}!</h1>
-                        <p class="lead text-secondary mb-4">Here's your personalized AI-powered coding journey analysis</p>
-                        <div class="score-card glass-card p-4 mb-4">
-                            <div class="row align-items-center">
-                                <div class="col-md-4">
-                                    <h5>Coding Style</h5>
-                                    <p class="lead mb-0">{{ analysis.summary.coding_style or 'Not Available' }}</p>
+                <div class="glass-panel">
+                    <div class="row align-items-center">
+                        <div class="col-lg-8 mx-auto">
+                            <div class="profile-section">
+                                <div class="profile-pic-container">
+                                    <img
+                                        src="{{ stats.profile.userAvatar if stats.profile.userAvatar else 'https://leetcode.com/static/images/default_avatar.png' }}"
+                                        alt="{{ username }}'s profile picture"
+                                        class="profile-pic"
+                                        onerror="this.src='https://leetcode.com/static/images/default_avatar.png'; this.onerror=null;"
+                                    >
+                                    <div class="profile-badge {{ analysis.summary.skill_level | lower }}">
+                                        {{ analysis.summary.skill_level }}
                                     </div>
-                                    <div class="col-md-4">
-                                        <h5>Skill Level</h5>
-                                        <p class="lead mb-0">{{ analysis.summary.skill_level or 'Not Available' }}</p>
                                 </div>
-                                <div class="col-md-4">
+                                <h1 class="display-4 mb-3 fw-bold typing-text">Welcome, {{ username }}!</h1>
+                                <p class="lead text-gradient mb-4">Your AI-Enhanced Coding Journey Analysis</p>
+                            </div>
+                            
+                            <div class="stats-grid mb-4">
+                                <div class="stat-card" data-tippy-content="Based on ML pattern analysis of your solutions">
+                                    <h5>Coding Style</h5>
+                                    <p class="value">{{ analysis.summary.coding_style or 'Not Available' }}</p>
+                                    <div class="confidence-indicator">
+                                        <div class="confidence-bar" style="--confidence: {{ analysis.coding_personality.problem_solving_style.confidence_metrics.pattern_strength * 100 }}%"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="stat-card" data-tippy-content="ML-based assessment of your overall skill level">
+                                    <h5>Skill Level</h5>
+                                    <p class="value">{{ analysis.summary.skill_level or 'Not Available' }}</p>
+                                    <div class="ml-confidence">
+                                        ML Confidence: {{ (analysis.code_quality_metrics.solution_efficiency.metrics.optimization_ratio * 100) | round }}%
+                                    </div>
+                                </div>
+                                
+                                <div class="stat-card" data-tippy-content="Comprehensive score based on multiple factors">
                                     <h5>Overall Score</h5>
-                                    <div class="progress">
-                                        {% if analysis.summary.overall_score is defined %}
-                                        <div class="progress-bar" role="progressbar"
-                                             aria-valuenow="{{ analysis.summary.overall_score }}"
-                                             aria-valuemin="0" aria-valuemax="100"
-                                             class="width-{{ analysis.summary.overall_score }}">
-                                            {{ analysis.summary.overall_score }}%
-                                        </div>
-                                        {% else %}
-                                        <div class="progress-bar" role="progressbar"
-                                             aria-valuenow="0"
-                                             aria-valuemin="0" aria-valuemax="100"
-                                             data-width="0">
-                                            N/A
-                                        </div>
-                                        {% endif %}
+                                    <div class="circular-progress" data-value="{{ analysis.summary.overall_score or 0 }}">
+                                        <div class="progress-value">
+                                            {{ analysis.summary.overall_score or 'N/A' }}%
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                            
+                            <div class="quick-insights">
+                                <div class="insight-tag" data-tippy-content="Your typical coding session time">
+                                    <i class="fas fa-clock"></i>
+                                    Peak Hours: {{ analysis.learning_insights.peak_hours[0].start_time if analysis.learning_insights.peak_hours else 'N/A' }}
+                                </div>
+                                <div class="insight-tag" data-tippy-content="Based on your submission patterns">
+                                    <i class="fas fa-bolt"></i>
+                                    Learning Speed: {{ analysis.learning_insights.learning_patterns.learning_speed }}
+                                </div>
+                                <div class="insight-tag" data-tippy-content="Your consistency score">
+                                    <i class="fas fa-chart-line"></i>
+                                    Consistency: {{ (analysis.learning_insights.learning_patterns.consistency_score * 100) | round }}%
                                 </div>
                             </div>
                         </div>
@@ -225,30 +250,41 @@
                 <!-- Problem-Solving Stats -->
                 <div class="glass-card p-4 mb-4">
                     <h3 class="mb-4">Solving Stats</h3>
-                    <div class="mb-3">
-                        <h5 class="mb-2">Easy</h5>
-                        <div class="progress">
-                            <div class="progress-bar bg-success" role="progressbar"
-                  class="width-{{ (stats.stats.easySolved / stats.stats.totalQuestions.Easy * 100) | round if stats.stats.totalQuestions.Easy else 0 }}">
-                                {{ stats.stats.easySolved or 0 }}/{{ stats.stats.totalQuestions.Easy or 0 }}
+                    <div class="difficulty-progress">
+                        <div class="difficulty-item mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h5 class="mb-0">Easy</h5>
+                                <span class="solved-count">{{ stats.stats.easySolved or 0 }}/{{ stats.stats.totalQuestions.Easy or 0 }}</span>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" style="--progress-width: {{ (stats.stats.easySolved / stats.stats.totalQuestions.Easy * 100) | round if stats.stats.totalQuestions.Easy else 0 }}%">
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="mb-3">
-                        <h5 class="mb-2">Medium</h5>
-                        <div class="progress">
-                            <div class="progress-bar bg-warning" role="progressbar"
-                  class="width-{{ (stats.stats.mediumSolved / stats.stats.totalQuestions.Medium * 100) | round if stats.stats.totalQuestions.Medium else 0 }}">
-                                {{ stats.stats.mediumSolved or 0 }}/{{ stats.stats.totalQuestions.Medium or 0 }}
+                        <div class="difficulty-item mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h5 class="mb-0">Medium</h5>
+                                <span class="solved-count">{{ stats.stats.mediumSolved or 0 }}/{{ stats.stats.totalQuestions.Medium or 0 }}</span>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress">
+                                    <div class="progress-bar bg-warning" style="--progress-width: {{ (stats.stats.mediumSolved / stats.stats.totalQuestions.Medium * 100) | round if stats.stats.totalQuestions.Medium else 0 }}%">
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div>
-                        <h5 class="mb-2">Hard</h5>
-                        <div class="progress">
-                            <div class="progress-bar bg-danger" role="progressbar"
-                  class="width-{{ (stats.stats.hardSolved / stats.stats.totalQuestions.Hard * 100) | round if stats.stats.totalQuestions.Hard else 0 }}">
-                                {{ stats.stats.hardSolved or 0 }}/{{ stats.stats.totalQuestions.Hard or 0 }}
+                        <div class="difficulty-item">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h5 class="mb-0">Hard</h5>
+                                <span class="solved-count">{{ stats.stats.hardSolved or 0 }}/{{ stats.stats.totalQuestions.Hard or 0 }}</span>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress">
+                                    <div class="progress-bar bg-danger" style="--progress-width: {{ (stats.stats.hardSolved / stats.stats.totalQuestions.Hard * 100) | round if stats.stats.totalQuestions.Hard else 0 }}%">
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -331,11 +367,16 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
     <script>
         // Make data available to external JS
         const analysisDataRaw = '{{ analysis | tojson | safe }}';
         const statsDataRaw = '{{ stats | tojson | safe }}';
     </script>
     <script src="{{ url_for('static', filename='js/results.js') }}"></script>
+
+    <!-- Font Awesome for icons -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </body>
 </html>

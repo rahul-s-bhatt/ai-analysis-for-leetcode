@@ -67,6 +67,17 @@ class AnalyticsManager:
             
         return {
             "summary": self._generate_summary(pattern_analysis, skill_analysis),
+            "coding_personality": {
+                "problem_solving_style": {
+                    "primary_style": pattern_analysis.get("coding_personality", {}).get("problem_solving_style", {}).get("primary_style", "Balanced"),
+                    "pattern_distribution": pattern_analysis.get("coding_personality", {}).get("problem_solving_style", {}).get("pattern_distribution", {}),
+                    "confidence_metrics": {
+                        "pattern_strength": pattern_analysis.get("coding_personality", {}).get("problem_solving_style", {}).get("confidence_metrics", {}).get("pattern_strength", 0),
+                        "feature_reliability": pattern_analysis.get("coding_personality", {}).get("problem_solving_style", {}).get("confidence_metrics", {}).get("feature_reliability", 0)
+                    },
+                    "approach_description": pattern_analysis.get("coding_personality", {}).get("problem_solving_style", {}).get("approach_description", "Not available")
+                }
+            },
             "detailed_analysis": {
                 "coding_patterns": pattern_analysis,
                 "skill_assessment": skill_analysis,
@@ -83,7 +94,23 @@ class AnalyticsManager:
                 skill_analysis
             ),
             "next_steps": self._generate_next_steps(learning_path),
-            "code_quality_metrics": code_quality,
+            "code_quality_metrics": {
+                **code_quality,
+                "solution_efficiency": {
+                    "metrics": {
+                        "runtime_percentile": code_quality.get("solution_efficiency", {}).get("metrics", {}).get("runtime_percentile", 0),
+                        "memory_percentile": code_quality.get("solution_efficiency", {}).get("metrics", {}).get("memory_percentile", 0),
+                        "optimization_ratio": code_quality.get("solution_efficiency", {}).get("metrics", {}).get("optimization_ratio", 0)
+                    }
+                }
+            },
+            "learning_insights": {
+                "peak_hours": learning_path.get("daily_schedule", [{"start_time": "09:00", "duration_hours": 2.0}]),
+                "learning_patterns": learning_path.get("learning_patterns", {
+                    "learning_speed": "moderate",
+                    "consistency_score": 0.5
+                })
+            },
             "analysis_timestamp": datetime.now().isoformat()
         }
 
@@ -345,6 +372,17 @@ class AnalyticsManager:
                 "key_strengths": [],
                 "priority_areas": []
             },
+            "coding_personality": {
+                "problem_solving_style": {
+                    "primary_style": "Not Available",
+                    "pattern_distribution": {},
+                    "confidence_metrics": {
+                        "pattern_strength": 0,
+                        "feature_reliability": 0
+                    },
+                    "approach_description": "Not enough data for analysis"
+                }
+            },
             "detailed_analysis": {
                 "skill_assessment": {
                     "detailed_analysis": {
@@ -408,6 +446,13 @@ class AnalyticsManager:
                     "areas_for_improvement": []
                 },
                 "code_style": {}
+            },
+            "learning_insights": {
+                "peak_hours": [{"start_time": "09:00", "duration_hours": 2.0}],
+                "learning_patterns": {
+                    "learning_speed": "Not available",
+                    "consistency_score": 0
+                }
             },
             "analysis_timestamp": timestamp
         }
